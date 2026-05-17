@@ -4,7 +4,7 @@ import os
 from collections import deque
 
 # get the directory of the current script
-data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sin_max_day")
+data_dir = os.path.dirname(os.path.abspath(__file__))
 
 # load the bus dataset
 bus_data = pd.read_csv(os.path.join(data_dir, "bus.csv"))

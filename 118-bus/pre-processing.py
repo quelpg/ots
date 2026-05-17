@@ -75,16 +75,29 @@ print(f"Phi shape: {Phi.shape}")
 # Set print options for better readability
 np.set_printoptions(precision=3, suppress=True, linewidth=120)
 
+# Save matrices to CSV files
+output_dir = os.path.join(data_dir, "matrices")
+os.makedirs(output_dir, exist_ok=True)
+
+# Use branch labels (fbus-tbus) as row index for B, A, and Phi
+branch_labels = [f"{fbus[i]}-{tbus[i]}" for i in range(num_branches)]
+bus_labels = [str(b) for b in non_slack_buses]
+
+pd.DataFrame(B, index=branch_labels, columns=branch_labels).to_csv(
+    os.path.join(output_dir, "B_branch_susceptance.csv"))
+
+pd.DataFrame(A, index=branch_labels, columns=bus_labels).to_csv(
+    os.path.join(output_dir, "A_incidence.csv"))
+
+pd.DataFrame(B_prime, index=bus_labels, columns=bus_labels).to_csv(
+    os.path.join(output_dir, "B_prime_bus_susceptance.csv"))
+
+pd.DataFrame(Phi, index=branch_labels, columns=bus_labels).to_csv(
+    os.path.join(output_dir, "Phi_sensitivity.csv"))
+
 print("")
-print("Viewing matrices:")
-print("B (Branch Susceptance Matrix, diagonal, first 10x10):")
-print(B[:10, :10])
-print("")
-print("A (Incidence Matrix, first 10x10):")
-print(A[:10, :10])
-print("")
-print("B' (Bus Susceptance Matrix, first 10x10):")
-print(B_prime[:10, :10])
-print("")
-print("Phi (Sensitivity Matrix, first 10x10):")
-print(Phi[:10, :10])
+print(f"Matrices saved to: {output_dir}")
+print("  - B_branch_susceptance.csv")
+print("  - A_incidence.csv")
+print("  - B_prime_bus_susceptance.csv")
+print("  - Phi_sensitivity.csv")
