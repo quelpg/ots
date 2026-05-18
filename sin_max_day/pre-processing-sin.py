@@ -5,6 +5,8 @@ from collections import deque
 
 # get the directory of the current script
 data_dir = os.path.dirname(os.path.abspath(__file__))
+# get the directory of the current script (CSV files are in the same folder)
+data_dir = os.path.dirname(os.path.abspath(__file__))
 
 # load the bus dataset
 bus_data = pd.read_csv(os.path.join(data_dir, "bus.csv"))
