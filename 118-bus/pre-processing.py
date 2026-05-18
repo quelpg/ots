@@ -1,103 +1,141 @@
-import pandas as pd
 import numpy as np
-import os
+import pandapower as pp
+import pandapower.networks as pn
 
-# get the directory of the current script
-data_dir = os.path.dirname(os.path.abspath(__file__))
+# Load the IEEE 118-bus system from pandapower
+net = pn.case118()
 
-# load the bus and branch datasets
-bus_data = pd.read_csv(os.path.join(data_dir, "bus_data_118-bus.csv"))
-branch_data = pd.read_csv(os.path.join(data_dir, "branch_data_118-bus.csv"))
+# Extract bus and branch info
+num_buses = len(net.bus)
+num_lines = len(net.line)
+num_trafos = len(net.trafo)
+num_branches = num_lines + num_trafos
 
-# count the number of buses and branches
-num_buses = len(bus_data)
-num_branches = len(branch_data)
-
-print("--------- Power System Data Summary ---------")
+print("--------- IEEE 118-Bus Power System Data Summary ---------")
 print("")
-print(f"Amount of buses: {num_buses}")
-print(f"Amount of branches: {num_branches}")
+print(f"Buses: {num_buses}")
+print(f"Branches: {num_branches}")
+print(f"  - Transmission lines: {num_lines}")
+print(f"  - Transformers: {num_trafos}")
+print(f"Generators: {len(net.gen) + len(net.sgen)}")
+print(f"Loads: {len(net.load)}")
+
+# --- Build unified branch data ---
+# For DC power flow we need: from_bus, to_bus, reactance (x in pu), rating
+
+# Transmission lines: x is in ohm/km * length_km, convert to pu
+base_mva = net.sn_mva  # system base MVA (typically 100)
+
+branches_from = []
+branches_to = []
+branches_x = []
+branches_rate = []
+
+# Lines: pandapower stores x_ohm_per_km and length_km
+for idx, line in net.line.iterrows():
+    from_bus = line["from_bus"]
+    to_bus = line["to_bus"]
+    # Get base impedance for the line's voltage level
+    vn_kv = net.bus.at[from_bus, "vn_kv"]
+    z_base = (vn_kv ** 2) / base_mva
+    # Total reactance in pu
+    x_pu = (line["x_ohm_per_km"] * line["length_km"]) / z_base
+    # Thermal limit (max_i_ka * vn_kv * sqrt(3) gives MVA rating)
+    rate_mva = line["max_i_ka"] * vn_kv * np.sqrt(3)
+
+    branches_from.append(from_bus)
+    branches_to.append(to_bus)
+    branches_x.append(x_pu)
+    branches_rate.append(rate_mva)
+
+# Transformers: pandapower stores vk_percent (short-circuit voltage %)
+for idx, trafo in net.trafo.iterrows():
+    from_bus = trafo["hv_bus"]
+    to_bus = trafo["lv_bus"]
+    # Reactance in pu (vk_percent / 100 is approximately x_pu for the trafo's rating)
+    # Convert to system base: x_pu_system = x_pu_trafo * (base_mva / sn_mva_trafo)
+    x_pu = (trafo["vk_percent"] / 100.0) * (base_mva / trafo["sn_mva"])
+    rate_mva = trafo["sn_mva"]
+
+    branches_from.append(from_bus)
+    branches_to.append(to_bus)
+    branches_x.append(x_pu)
+    branches_rate.append(rate_mva)
+
+branches_from = np.array(branches_from, dtype=int)
+branches_to = np.array(branches_to, dtype=int)
+branches_x = np.array(branches_x)
+branches_rate = np.array(branches_rate)
+
+# --- Pre-processing: DC power flow matrices ---
 
 print("")
 print("--------- Matrices Dimensions Summary ---------")
 print("")
-print(f"Dimension of Branch Susceptance Matrix (B): {num_branches}X{num_branches}")
-print(f"Dimension of Incidence Matrix (A): {num_branches}X{num_buses-1}")
-print(f"Dimension of Bus Susceptance Matrix (B'): {num_buses-1}X{num_buses-1}")
-print(f"Dimension of Sensitivity Matrix (Phi): {num_branches}X{num_buses-1}")
+print(f"Dimension of Branch Susceptance Matrix (B): {num_branches}x{num_branches}")
+print(f"Dimension of Incidence Matrix (A): {num_branches}x{num_buses-1}")
+print(f"Dimension of Bus Susceptance Matrix (B'): {num_buses-1}x{num_buses-1}")
+print(f"Dimension of Sensitivity Matrix (Phi): {num_branches}x{num_buses-1}")
 
-# Pre-processing calculations
+# Choose the slack bus (pandapower uses ext_grid as the slack)
+slack_bus = net.ext_grid.at[0, "bus"]
+print(f"\nSlack bus: {slack_bus}")
 
-# Choose the reference/slack bus (can be any bus number from 1 to num_buses)
-slack_bus = 1
+# All bus indices
+all_buses = net.bus.index.values
+non_slack_buses = [b for b in all_buses if b != slack_bus]
 
-# List of non-slack buses (all buses except slack)
-non_slack_buses = [i for i in range(1, num_buses + 1) if i != slack_bus]
-
-# Mapping from bus number to column index in A and B'
+# Mapping from bus index to column position in A and B'
 bus_to_col = {bus: idx for idx, bus in enumerate(non_slack_buses)}
 
-# Extract branch reactances
-x = branch_data['x'].values
+# Check for zero reactances
+zero_x_mask = branches_x == 0
+if zero_x_mask.any():
+    print(f"\nWARNING: {zero_x_mask.sum()} branches have zero reactance. "
+          f"Replacing with 1e-6 to avoid division by zero.")
+    branches_x[zero_x_mask] = 1e-6
 
-# B: Branch Susceptance Matrix (diagonal, 1/x for each branch)
-B = np.diag(1.0 / x)
+# B: Branch Susceptance Matrix (diagonal)
+B = np.diag(1.0 / branches_x)
 
 # A: Incidence Matrix (branches x non-slack buses)
-A = np.zeros((num_branches, num_buses-1))
-
-fbus = branch_data['fbus'].values.astype(int)
-tbus = branch_data['tbus'].values.astype(int)
+A = np.zeros((num_branches, num_buses - 1))
 
 for i in range(num_branches):
-    f = fbus[i]
-    t = tbus[i]
+    f = branches_from[i]
+    t = branches_to[i]
     if f in bus_to_col:
-        A[i, bus_to_col[f]] = 1  # positive direction for from bus
+        A[i, bus_to_col[f]] = 1
     if t in bus_to_col:
-        A[i, bus_to_col[t]] = -1  # negative direction for to bus
+        A[i, bus_to_col[t]] = -1
 
 # B': Bus Susceptance Matrix
 B_prime = A.T @ B @ A
 
-# Phi: Sensitivity Matrix
+# Phi: Sensitivity Matrix (PTDF)
+print("\nComputing B' inverse...")
 B_prime_inv = np.linalg.inv(B_prime)
 Phi = B @ A @ B_prime_inv
 
 print("")
 print("--------- Pre-processing Completed ---------")
-print("Matrices B, A, B', and Phi have been calculated.")
 print(f"B shape: {B.shape}")
 print(f"A shape: {A.shape}")
 print(f"B' shape: {B_prime.shape}")
 print(f"Phi shape: {Phi.shape}")
 
-# Set print options for better readability
+# Display first 10x10 of each matrix
 np.set_printoptions(precision=3, suppress=True, linewidth=120)
 
-# Save matrices to CSV files
-output_dir = os.path.join(data_dir, "matrices")
-os.makedirs(output_dir, exist_ok=True)
-
-# Use branch labels (fbus-tbus) as row index for B, A, and Phi
-branch_labels = [f"{fbus[i]}-{tbus[i]}" for i in range(num_branches)]
-bus_labels = [str(b) for b in non_slack_buses]
-
-pd.DataFrame(B, index=branch_labels, columns=branch_labels).to_csv(
-    os.path.join(output_dir, "B_branch_susceptance.csv"))
-
-pd.DataFrame(A, index=branch_labels, columns=bus_labels).to_csv(
-    os.path.join(output_dir, "A_incidence.csv"))
-
-pd.DataFrame(B_prime, index=bus_labels, columns=bus_labels).to_csv(
-    os.path.join(output_dir, "B_prime_bus_susceptance.csv"))
-
-pd.DataFrame(Phi, index=branch_labels, columns=bus_labels).to_csv(
-    os.path.join(output_dir, "Phi_sensitivity.csv"))
-
 print("")
-print(f"Matrices saved to: {output_dir}")
-print("  - B_branch_susceptance.csv")
-print("  - A_incidence.csv")
-print("  - B_prime_bus_susceptance.csv")
-print("  - Phi_sensitivity.csv")
+print("B (Branch Susceptance Matrix, first 10x10):")
+print(B[:10, :10])
+print("")
+print("A (Incidence Matrix, first 10x10):")
+print(A[:10, :10])
+print("")
+print("B' (Bus Susceptance Matrix, first 10x10):")
+print(B_prime[:10, :10])
+print("")
+print("Phi (Sensitivity Matrix / PTDF, first 10x10):")
+print(Phi[:10, :10])
