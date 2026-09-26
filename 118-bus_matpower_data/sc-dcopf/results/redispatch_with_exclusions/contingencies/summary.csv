@@ -1,0 +1,6 @@
+metric,value
+expected_cost_usd_per_h,93509.32
+total_load_mw,4242.0
+total_generation_mw,4242.0
+n_scenarios,194.0
+n_active_generators,13.0
