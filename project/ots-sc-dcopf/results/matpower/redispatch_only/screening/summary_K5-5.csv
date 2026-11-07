@@ -1,0 +1,2 @@
+K,iterations,core_size,core,verdict,time_s
+5,1,9,base case;line 7 (8-5) out;line 50 (38-37) out;gen 0 (bus 10) out;line 45 (35-36) out;line 46 (35-37) out;line 55 (40-41) out;line 178 (32-113) out;line 177 (17-113) out,"unknown (time limit, no solution)",1800.2

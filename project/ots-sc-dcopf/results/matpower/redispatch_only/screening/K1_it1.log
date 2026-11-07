@@ -1,0 +1,66 @@
+
+Gurobi 13.0.3 (win64) logging started Sat Nov  7 14:20:16 2026
+
+Set parameter LogFile to value "results/matpower/redispatch_only/screening/K1_it1.log"
+Set parameter MIPGap to value 0.01
+Set parameter TimeLimit to value 600
+Set parameter MIPFocus to value 1
+Set parameter DualReductions to value 0
+Gurobi Optimizer version 13.0.3 build v13.0.3rc0 (win64 - Windows 11.0 (26100.2))
+
+CPU model: Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz, instruction set [SSE2|AVX|AVX2]
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Non-default parameters:
+TimeLimit  600
+MIPGap  0.01
+MIPFocus  1
+DualReductions  0
+LogToConsole  0
+
+Academic license 2855642 - for non-commercial use only - registered to ra___@poli.ufrj.br
+Optimize a model with 3612 rows, 1478 columns and 10820 nonzeros (Min)
+Model fingerprint: 0xae4ae1f9
+Model has 76 linear objective coefficients
+Variable types: 1292 continuous, 186 integer (186 binary)
+Coefficient statistics:
+  Matrix range     [7e-01, 4e+02]
+  Objective range  [1e+00, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e-02, 4e+02]
+
+Presolve removed 996 rows and 304 columns
+Presolve time: 1.42s
+Presolved: 2616 rows, 1174 columns, 9526 nonzeros
+Variable types: 997 continuous, 177 integer (177 binary)
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    2114    6.0011957e+04   2.201960e+03   0.000000e+00      5s
+    2242    6.0012708e+04   0.000000e+00   0.000000e+00      5s
+
+Root relaxation: objective 6.001271e+04, 2242 iterations, 0.80 seconds (0.14 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 60012.7080    0   14          - 60012.7080      -     -    6s
+     0     0 60042.7877    0   12          - 60042.7877      -     -    7s
+     0     0 60043.1295    0   10          - 60043.1295      -     -    8s
+     0     0 60043.9752    0   10          - 60043.9752      -     -    8s
+     0     0 60043.9752    0   10          - 60043.9752      -     -    8s
+     0     0 60043.9752    0   10          - 60043.9752      -     -    8s
+     0     2 60043.9752    0   10          - 60043.9752      -     -   10s
+
+Cutting planes:
+  Gomory: 4
+  Inf proof: 1
+
+Explored 61 nodes (10452 simplex iterations) in 12.61 seconds (1.67 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible
+Best objective -, best bound -, gap -
