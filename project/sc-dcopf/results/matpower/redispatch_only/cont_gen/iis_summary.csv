@@ -1,2 +1,7 @@
-scenario_id,scenario_desc,n_constraints,constraint_types
-1,gen 0 out,284,"bal,dcflow,fmax,fmin,pmax,pmin"
+scenario_id,scenario_desc,out_element,n_constraints,constraint_types
+0,base case (all in service),base case,283,"bal,dcflow,fmin,pmax"
+1,gen 0 out,gen bus 10 (gen_id 0),303,"bal,dcflow,fmin,pmax,resp,thmin"
+4,gen 3 out,gen bus 26 (gen_id 3),300,"bal,dcflow,fmin,resp"
+12,gen 11 out,gen bus 66 (gen_id 11),20,"pmax,resp"
+16,gen 15 out,gen bus 89 (gen_id 15),302,"bal,dcflow,fmin,pmax,resp"
+17,gen 16 out,gen bus 100 (gen_id 16),288,"bal,dcflow,fmin,resp"

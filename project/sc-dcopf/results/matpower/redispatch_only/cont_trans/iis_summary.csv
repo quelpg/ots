@@ -1,2 +1,9 @@
-scenario_id,scenario_desc,n_constraints,constraint_types
-7,line 7 out,228,"bal,dcflow,dcflow_off,fmax,fmin,pmax,pmin"
+scenario_id,scenario_desc,out_element,n_constraints,constraint_types
+7,line 7 out,line 8-5 (branch_id 7),303,"bal,couple,dcflow,dcflow_off,fmin,pmax,pmin,thmin"
+9,line 10 out,line 5-11 (branch_id 10),6,"couple,pmax"
+36,line 37 out,line 26-30 (branch_id 37),231,"bal,couple,dcflow,dcflow_off,fmin"
+82,line 83 out,line 54-59 (branch_id 83),140,"bal,couple,pmax"
+97,line 98 out,line 49-66 (branch_id 98),232,"bal,couple,dcflow,dcflow_off,fmin"
+102,line 103 out,line 65-68 (branch_id 103),2,"couple,pmax"
+123,line 125 out,line 68-81 (branch_id 125),173,"bal,couple,dcflow,dcflow_off,fmin"
+125,line 127 out,line 77-82 (branch_id 127),232,"bal,couple,dcflow,dcflow_off,fmin"

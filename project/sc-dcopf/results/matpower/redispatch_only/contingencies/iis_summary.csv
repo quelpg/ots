@@ -1,2 +1,14 @@
-scenario_id,scenario_desc,n_constraints,constraint_types
-7,line 7 out,283,"bal,dcflow,dcflow_off,fmax,fmin,pmax,pmin"
+scenario_id,scenario_desc,out_element,n_constraints,constraint_types
+7,line 7 out,line 8-5 (branch_id 7),281,"bal,couple,dcflow,dcflow_off,fmin,thmax"
+26,line 27 out,line 21-22 (branch_id 27),137,"bal,couple"
+36,line 37 out,line 26-30 (branch_id 37),300,"bal,couple,dcflow,dcflow_off,fmin"
+65,line 66 out,line 42-49 (branch_id 66),298,"bal,couple,dcflow,dcflow_off,fmin"
+80,line 81 out,line 56-58 (branch_id 81),306,"bal,couple,dcflow,dcflow_off,fmax,fmin,thmax"
+96,line 97 out,line 49-66 (branch_id 97),298,"bal,couple,dcflow,dcflow_off,fmin"
+145,line 149 out,line 94-96 (branch_id 149),291,"bal,couple,dcflow,dcflow_off,fmax,fmin,thmax"
+154,line 158 out,line 99-100 (branch_id 158),287,"bal,couple,dcflow,dcflow_off,fmin"
+178,gen 0 out,gen bus 10 (gen_id 0),302,"bal,dcflow,fmin,pmax,resp,thmin"
+181,gen 3 out,gen bus 26 (gen_id 3),286,"bal,dcflow,fmin,pmax,resp"
+191,gen 13 out,gen bus 80 (gen_id 13),2,"pmax,resp"
+193,gen 15 out,gen bus 89 (gen_id 15),14,"pmax,resp"
+194,gen 16 out,gen bus 100 (gen_id 16),2,"pmax,resp"

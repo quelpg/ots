@@ -1,6 +1,6 @@
 metric,value
-expected_cost_usd_per_h,93169.37
+base_cost_usd_per_h,102020.06
 total_load_mw,4242.0
 total_generation_mw,4242.0
 n_scenarios,176.0
-n_active_generators,13.0
+n_active_generators,15.0

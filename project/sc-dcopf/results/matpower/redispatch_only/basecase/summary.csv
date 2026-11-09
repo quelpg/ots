@@ -1,5 +1,5 @@
 metric,value
-expected_cost_usd_per_h,93152.38
+base_cost_usd_per_h,93152.38
 total_load_mw,4242.0
 total_generation_mw,4242.0
 n_scenarios,1.0
