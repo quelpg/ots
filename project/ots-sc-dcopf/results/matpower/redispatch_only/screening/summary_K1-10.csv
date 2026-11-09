@@ -1,7 +1,5 @@
-K,iterations,core_size,core,verdict,time_s,opened,core_cost,core_bound
-1,1,4,base case;line 7 (8-5) out;line 50 (38-37) out;gen 0 (bus 10) out,infeasible,12.8,,,
-2,1,4,base case;line 7 (8-5) out;line 50 (38-37) out;gen 0 (bus 10) out,infeasible,41.8,,,
-3,1,4,base case;line 7 (8-5) out;line 50 (38-37) out;gen 0 (bus 10) out,infeasible,231.2,,,
-4,1,4,base case;line 7 (8-5) out;line 50 (38-37) out;gen 0 (bus 10) out,infeasible,403.7,,,
-5,2,7,base case;line 7 (8-5) out;line 50 (38-37) out;gen 0 (bus 10) out;line 45 (35-36) out;line 46 (35-37) out;line 55 (40-41) out,"unknown (time limit, no solution)",655.8,,,
-6,4,9,base case;line 7 (8-5) out;line 50 (38-37) out;gen 0 (bus 10) out;line 45 (35-36) out;line 46 (35-37) out;line 55 (40-41) out;line 178 (32-113) out;line 177 (17-113) out,feasible (full N-1),1931.5,8-30;17-31;34-37;30-38;40-42;65-66,61138.45,60478.9
+K,iterations,core_size,core,verdict,time_s
+1,1,4,base case;line 7 (8-5) out;line 95 (38-65) out;gen 0 (bus 10) out,infeasible,4.7
+2,1,4,base case;line 7 (8-5) out;line 95 (38-65) out;gen 0 (bus 10) out,infeasible,24.8
+3,1,4,base case;line 7 (8-5) out;line 95 (38-65) out;gen 0 (bus 10) out,infeasible,253.7
+4,1,4,base case;line 7 (8-5) out;line 95 (38-65) out;gen 0 (bus 10) out,"unknown (time limit, no solution)",1480.7

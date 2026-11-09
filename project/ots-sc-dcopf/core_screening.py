@@ -1,27 +1,30 @@
 """Feasibility screening of the OTS-SC-DCOPF by contingency subsets.
 
-The topology z is shared by every scenario, so the problem restricted to a subset of
-scenarios (the "core") is a relaxation of the full one:
+The topology z and the base-case dispatch P_g0 are shared by every scenario, so the problem
+restricted to a subset of scenarios (the "core", always including the base case) is a
+relaxation of the full one:
 - core infeasible for K  ->  full problem infeasible for K (safe to discard K);
-- core feasible for K    ->  fix its topology and check every other contingency (one LP
-  each). If all pass, the topology is feasible for the full problem (a warm start). If some
-  fail, they are added to the core and the core is solved again (constraint generation).
+- core feasible for K    ->  fix its topology and solve the full SC-DCOPF on it (one LP, all
+  scenarios together, since they are coupled through P_g0). If it is feasible, the topology
+  is feasible for the full problem (a warm start). If not, the scenarios in the IIS of that
+  LP are added to the core and the core is solved again (constraint generation).
 
-The core starts with the base case plus the contingencies that are infeasible on the full
-topology (identified by ../sc-dcopf/vulnerability.ipynb).
+The core starts with the base case plus the contingencies that make the SC-DCOPF infeasible
+on the full topology (vulnerability analysis, Section 10 of ../sc-dcopf/sc-dcopf.ipynb).
 
-Same formulation as ots-sc-dcopf.ipynb ('redispatch_only'): equations (3.9)-(3.16).
+Same formulation as ots-sc-dcopf.ipynb.
 
 Usage (from project/ots-sc-dcopf/):
     python core_screening.py --k-min 1 --k-max 10
     python core_screening.py --k-min 4 --k-max 4 --threads 8
+    python core_screening.py --formulation redispatch_with_exclusions --k-min 1 --k-max 3
 """
 
 import argparse
 import os
+import re
 import time
 
-import numpy as np
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
@@ -65,26 +68,37 @@ for l in set_L:
 
 set_LS = branches.loc[~branches["is_bridge"], "branch_id"].tolist()   # switchable (non-radial)
 
-# --- scenarios: same ids as the notebook with INCLUDE_CT = INCLUDE_CG = True ---
-scenarios = [{"id": 0, "type": "base", "out_line": None, "out_gen": None, "desc": "base case"}]
-for l in set_LS:
-    scenarios.append({"id": len(scenarios), "type": "line", "out_line": l, "out_gen": None,
-                      "desc": f"line {l} ({par_label[l]}) out"})
-for g in set_G:
-    scenarios.append({"id": len(scenarios), "type": "gen", "out_line": None, "out_gen": g,
-                      "desc": f"gen {g} (bus {par_g_bus[g]}) out"})
-scen  = {s["id"]: s for s in scenarios}
-set_C = list(scen)
+# --- same parameters as the notebook (keep them in sync) ---
+EMERG_FACTOR = 1.15                                     # F^em = EMERG_FACTOR * F^max
+par_rate_em  = {l: EMERG_FACTOR * par_rate[l] for l in set_L}
+THETA_MAX    = 0.6                                      # bus angle limits [rad]
+THETA_MIN    = -THETA_MAX
+par_M        = {l: (THETA_MAX - THETA_MIN) / par_x[l] for l in set_L}
 
-RHO_GEN, RHO_LINE = 1e-2, 1e-3
-par_rho = {c: RHO_GEN if scen[c]["type"] == "gen" else RHO_LINE for c in set_C if c != 0}
-par_rho[0] = 1.0 - sum(par_rho.values())
+# Contingencies that make the SC-DCOPF infeasible on the full topology (the initial core).
+# They are also the exclusions of 'redispatch_with_exclusions'.
+HARD = [("line", 7),    # line 8-5    (infeasible alone)
+        ("line", 95),   # line 38-65  (joint conflict)
+        ("gen", 0)]     # generator at bus 10, 505 MW (joint conflict)
 
-DTHETA_MAX = np.pi / 2
-par_M = {l: DTHETA_MAX / par_x[l] for l in set_L}
+# --- scenarios: same ids as the notebook (base, then lines, then generators) ---
+scenarios, scen, set_C = [], {}, []
 
-# Contingencies infeasible on the full topology (vulnerability.ipynb): the initial core.
-HARD = [("line", 7), ("line", 50), ("gen", 0)]
+
+def set_scenarios(exclude):
+    """Build the scenario list for a formulation (exclude = list of ('line'|'gen', id))."""
+    global scenarios, scen, set_C
+    scenarios = [{"id": 0, "type": "base", "out_line": None, "out_gen": None, "desc": "base case"}]
+    for l in set_LS:
+        if ("line", l) not in exclude:
+            scenarios.append({"id": len(scenarios), "type": "line", "out_line": l, "out_gen": None,
+                              "desc": f"line {l} ({par_label[l]}) out"})
+    for g in set_G:
+        if ("gen", g) not in exclude:
+            scenarios.append({"id": len(scenarios), "type": "gen", "out_line": None, "out_gen": g,
+                              "desc": f"gen {g} (bus {par_g_bus[g]}) out"})
+    scen  = {s["id"]: s for s in scenarios}
+    set_C = list(scen)
 
 
 def scenario_id(kind, element):
@@ -101,7 +115,9 @@ def gen_on(g, c):
 
 
 def build_model(scen_ids, max_switched=None, z_fixed=None, env=None):
-    """OTS-SC-DCOPF over scen_ids. z_fixed = {branch: 0/1} turns it into an LP."""
+    """OTS-SC-DCOPF over scen_ids (must include the base case 0).
+    z_fixed = {branch: 0/1} turns it into an LP (the SC-DCOPF on that topology)."""
+    assert 0 in scen_ids, "the base case is coupled to every scenario: it must be included"
     model = gp.Model(env=env)
 
     var_p     = {(g, c): model.addVar(lb=-GRB.INFINITY) for g in set_G for c in scen_ids}
@@ -117,41 +133,64 @@ def build_model(scen_ids, max_switched=None, z_fixed=None, env=None):
     else:
         var_z = z_fixed   # constants: the big-M terms below become plain numbers
 
-    model.setObjective(gp.quicksum(par_rho[c] * par_cost[g] * var_p[(g, c)] * BASE_MVA
-                                   for g in set_G for c in scen_ids), GRB.MINIMIZE)
+    # objective: base-case generation cost
+    model.setObjective(gp.quicksum(par_cost[g] * var_p[(g, 0)] * BASE_MVA for g in set_G),
+                       GRB.MINIMIZE)
 
+    # constraint names end in ',c]' so the scenarios of an IIS can be read back
     for c in scen_ids:
-        for i in set_N:                                                       # (3.9)
+        kind = scen[c]["type"]
+        for i in set_N:                                                       # energy balance
             model.addConstr(gp.quicksum(var_p[(g, c)] for g in set_gens_at[i]) - par_pd[i]
                             == gp.quicksum(var_f[(l, c)] for l in set_out_lines[i])
-                            - gp.quicksum(var_f[(l, c)] for l in set_in_lines[i]))
-        for g in set_G:                                                       # (3.10)
-            model.addConstr(var_p[(g, c)] >= par_pmin[g] * gen_on(g, c))
-            model.addConstr(var_p[(g, c)] <= par_pmax[g] * gen_on(g, c))
+                            - gp.quicksum(var_f[(l, c)] for l in set_in_lines[i]),
+                            name=f"bal[{i},{c}]")
+        for g in set_G:                                                       # generator limits
+            model.addConstr(var_p[(g, c)] >= par_pmin[g] * gen_on(g, c), name=f"pmin[{g},{c}]")
+            model.addConstr(var_p[(g, c)] <= par_pmax[g] * gen_on(g, c), name=f"pmax[{g},{c}]")
+        if kind == "line":                                                    # preventive coupling
+            for g in set_G:
+                model.addConstr(var_p[(g, c)] == var_p[(g, 0)], name=f"couple[{g},{c}]")
+        if kind == "gen":                                                     # contingency response
+            cap_on = sum(gen_on(h, c) * par_pmax[h] for h in set_G)
+            lost = gp.quicksum((1 - gen_on(h, c)) * var_p[(h, 0)] for h in set_G)
+            for g in set_G:
+                if gen_on(g, c):
+                    model.addConstr(var_p[(g, c)] == var_p[(g, 0)] + par_pmax[g] / cap_on * lost,
+                                    name=f"resp[{g},{c}]")
+        rate = par_rate if c == 0 else par_rate_em                            # F^max / F^em
         for l in set_L:
             i, j = par_from[l], par_to[l]
-            model.addConstr(var_f[(l, c)] >= -par_rate[l] * var_z[l])        # (3.12)
-            model.addConstr(var_f[(l, c)] <=  par_rate[l] * var_z[l])
-            if line_on(l, c) == 1:
+            model.addConstr(var_f[(l, c)] >= -rate[l] * var_z[l], name=f"fmin[{l},{c}]")
+            model.addConstr(var_f[(l, c)] <=  rate[l] * var_z[l], name=f"fmax[{l},{c}]")
+            if line_on(l, c) == 1:                                            # big-M DC flow
                 dc_law = var_f[(l, c)] - (1.0 / par_x[l]) * (var_theta[(i, c)] - var_theta[(j, c)])
-                model.addConstr(dc_law + par_M[l] * (1 - var_z[l]) >= 0)      # (3.13)
-                model.addConstr(dc_law - par_M[l] * (1 - var_z[l]) <= 0)      # (3.14)
+                model.addConstr(dc_law + par_M[l] * (1 - var_z[l]) >= 0, name=f"dcflow_lo[{l},{c}]")
+                model.addConstr(dc_law - par_M[l] * (1 - var_z[l]) <= 0, name=f"dcflow_hi[{l},{c}]")
             else:
-                model.addConstr(var_f[(l, c)] == 0.0)                         # (3.15)
-        model.addConstr(var_theta[(SLACK_BUS, c)] == 0.0)                     # (3.16)
+                model.addConstr(var_f[(l, c)] == 0.0, name=f"dcflow_off[{l},{c}]")
+        for i in set_N:                                                       # angle limits
+            model.addConstr(var_theta[(i, c)] >= THETA_MIN, name=f"thmin[{i},{c}]")
+            model.addConstr(var_theta[(i, c)] <= THETA_MAX, name=f"thmax[{i},{c}]")
+        model.addConstr(var_theta[(SLACK_BUS, c)] == 0.0, name=f"ref[{c}]")   # reference bus
 
     return model, var_z
 
 
 def failing_contingencies(z_fixed, env):
-    """Solve one LP per scenario with the topology fixed; return the infeasible ones."""
-    failing = []
-    for c in set_C:
-        model, _ = build_model([c], z_fixed=z_fixed, env=env)
-        model.optimize()
-        if model.status != GRB.OPTIMAL:
-            failing.append(c)
+    """Solve the full SC-DCOPF with the topology fixed (one LP, all scenarios together).
+    Return [] if it is feasible, otherwise the contingencies in the IIS of that LP."""
+    model, _ = build_model(set_C, z_fixed=z_fixed, env=env)
+    model.setParam("DualReductions", 0)
+    model.optimize()
+    if model.status == GRB.OPTIMAL:
         model.dispose()
+        return []
+    model.computeIIS()
+    pat = re.compile(r",?(\d+)\]$")
+    failing = sorted({int(pat.search(con.ConstrName).group(1))
+                      for con in model.getConstrs() if con.IISConstr} - {0})
+    model.dispose()
     return failing
 
 
@@ -193,7 +232,7 @@ def screen_k(K, core, args, env, out_dir):
 
         failing = failing_contingencies(z, env)
         print(f"         topology opens {[par_label[l] for l in set_L if z[l] == 0]}, "
-              f"{len(failing)} contingencies fail on it", flush=True)
+              f"{len(failing)} contingencies in the IIS of the full LP", flush=True)
         if not failing:
             pd.DataFrame({"branch_id": set_L, "label": [par_label[l] for l in set_L],
                           "z": [z[l] for l in set_L]}).to_csv(f"{out_dir}/K{K}_topology.csv",
@@ -210,6 +249,8 @@ def screen_k(K, core, args, env, out_dir):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--formulation", default="redispatch_only",
+                    choices=["redispatch_only", "redispatch_with_exclusions"])
     ap.add_argument("--k-min", type=int, default=1)
     ap.add_argument("--k-max", type=int, default=10)
     ap.add_argument("--time-limit", type=float, default=600, help="per core solve [s]")
@@ -224,7 +265,10 @@ def main():
     ap.add_argument("--core-k", type=int, help="...taken from the row of this K")
     args = ap.parse_args()
 
-    out_dir = f"results/{SOURCE}/redispatch_only/screening"
+    exclude = HARD if args.formulation == "redispatch_with_exclusions" else []
+    set_scenarios(exclude)
+
+    out_dir = f"results/{SOURCE}/{args.formulation}/screening"
     os.makedirs(out_dir, exist_ok=True)
 
     # Losing a generator cannot be fixed by switching if the remaining capacity is too small.
@@ -240,7 +284,8 @@ def main():
         id_of    = {s["desc"]: s["id"] for s in scenarios}
         core     = [id_of[d] for d in prev.loc[args.core_k, "core"].split(";")]
     else:
-        core = [0] + [scenario_id(kind, e) for kind, e in HARD]
+        core = [0] + [scenario_id(kind, e) for kind, e in HARD if (kind, e) not in exclude]
+    print(f"Formulation: {args.formulation} | |C| = {len(set_C)}")
     print(f"Initial core: {[scen[c]['desc'] for c in core]}")
 
     env  = gp.Env(params={"OutputFlag": 0})
