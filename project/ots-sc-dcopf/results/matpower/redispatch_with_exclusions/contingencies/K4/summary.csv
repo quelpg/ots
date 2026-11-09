@@ -1,0 +1,13 @@
+metric,value
+base_cost_usd_per_h,106925.7
+best_bound_usd_per_h,99232.22
+mip_gap,0.07195163853946704
+solver_status,9.0
+runtime_s,21600.0
+total_load_mw,4242.0
+total_generation_mw,4242.0
+n_scenarios,194.0
+n_active_generators,17.0
+max_switched,4.0
+n_switched_lines,4.0
+theta_max_rad,0.6

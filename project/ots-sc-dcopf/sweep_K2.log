@@ -1,0 +1,60 @@
+nohup: ignoring input
+
+######################################################################
+# K = 2 | redispatch_with_exclusions | CT=True CG=True
+######################################################################
+base_mva = 100 MVA | slack bus = 69
+generators = 19 | buses = 118 | branches = 186
+|N| = 118 buses | |G| = 19 generators | |L| = 186 branches
+Bus 69 (slack): gens=[12], lines out=3, lines in=3
+INCLUDE_CT=True | INCLUDE_CG=True | excluded 3 contingencies
+Eligible: |C_T|=175 non-radial lines, |C_G|=18 generators
+|C| = 194 operating states (1 base + 193 contingencies)
+MODEL=ots-sc-dcopf | FORMULATION=redispatch_with_exclusions | config=contingencies | K=2
+output -> results/matpower/redispatch_with_exclusions/contingencies/K2
+alpha defined for 18 generator contingencies
+theta in [-0.6, 0.6] rad | M_ij in [2.9, 296.3] p.u.
+Set parameter WLSAccessID
+Set parameter WLSSecret
+Set parameter LicenseID to value 2855642
+Academic license 2855642 - for non-commercial use only - registered to ra___@poli.ufrj.br
+Set parameter OutputFlag to value 1
+Set parameter LogToConsole to value 0
+Created 3686 p, 36084 f, 22892 theta, 186 z variables.
+|L^S| = 177 switchable branches | 9 radial branches fixed closed: ['8-9', '9-10', '71-73', '85-86', '86-87', '110-111', '110-112', '68-116', '12-117']
+Switching limit: at most K = 2 branches open
+Model built: 0 variables (0 binary), 0 constraints.
+Warm start from results/matpower/redispatch_with_exclusions/contingencies/K1/line_loading.csv: 1 branches open ['64-65']
+=======================================================
+  OTS-SC-DCOPF SOLUTION - IEEE 118-Bus
+=======================================================
+  Status          : OPTIMAL (gap 0.0000%)
+  Base-case cost  : $107,665.95 /h
+  Best bound      : $107,665.95 /h
+  Total load      : 4242.00 MW
+  Total generation: 4242.00 MW (base case)
+  Scenarios       : 194
+  Switching limit : K = 2
+  Lines switched  : 2 -> ['64-65', '77-80']
+Isolated buses: [] (load 0.0 MW, gens [])
+Active generators: 17
+    gen_id  bus    p_mw  pmax_mw       c1
+0       16  100  547.08    653.0   12.612
+1        9   61  176.80    195.0   16.056
+2        6   49  202.19    223.0   16.674
+3        3   26  198.96    485.0   22.221
+4        5   46   18.13     20.0   24.202
+5       13   80  461.50    509.0   24.601
+6       15   89  539.81    637.0   24.605
+7        8   59  279.26    308.0   24.862
+8        0   10  457.87    505.0   24.983
+9       12   69  269.25   1182.0   25.758
+10       4   31   15.41     17.0   25.994
+11       7   54   38.56     53.0   27.277
+12      17  103   48.54    108.0   28.649
+13       2   25  191.16    221.0   28.948
+14      11   66  349.02    784.0   32.669
+15      10   65  399.84    441.0   34.782
+16       1   12   48.62     85.0  124.582
+Saved 5 files to results/matpower/redispatch_with_exclusions/contingencies/K2/ (cost=$107,665.95/h, 17 active gens, 2 lines switched).
+K = 2 done in 8188 s
