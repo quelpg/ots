@@ -14,13 +14,23 @@ on the full topology (vulnerability analysis, Section 10 of ../sc-dcopf/sc-dcopf
 
 Same formulation as ots-sc-dcopf.ipynb.
 
+Minimum-switching mode (--min-switching): same constraint generation, but the core MILP
+minimizes the number of open branches, sum(1 - z) over L^S, with no K limit. The result is a
+topology feasible for the full N-1 set with n_open branches open, so K_min <= n_open; the bound
+of the last core MILP is a lower bound on K_min (the core is a relaxation), so K_min is proven
+when both match. The topology is saved as min_switching_topology.csv and as
+K<n_open>_topology.csv, which ots-sc-dcopf.ipynb uses as the warm start for K = n_open.
+
 Usage (from project/ots-sc-dcopf/):
     python core_screening.py --k-min 1 --k-max 10
     python core_screening.py --k-min 4 --k-max 4 --threads 8
     python core_screening.py --formulation redispatch_with_exclusions --k-min 1 --k-max 3
+    python core_screening.py --min-switching --min-open 4 --time-limit 3600
+    python core_screening.py --min-switching --min-open 4 --max-open 10 --time-limit 3600
 """
 
 import argparse
+import math
 import os
 import re
 import time
@@ -114,9 +124,12 @@ def gen_on(g, c):
     return 0 if scen[c]["out_gen"] == g else 1
 
 
-def build_model(scen_ids, max_switched=None, z_fixed=None, env=None):
+def build_model(scen_ids, max_switched=None, z_fixed=None, env=None,
+                objective="cost", min_open=0):
     """OTS-SC-DCOPF over scen_ids (must include the base case 0).
-    z_fixed = {branch: 0/1} turns it into an LP (the SC-DCOPF on that topology)."""
+    z_fixed = {branch: 0/1} turns it into an LP (the SC-DCOPF on that topology).
+    objective = 'cost' (base-case generation cost) or 'switching' (number of open branches,
+    min sum(1 - z) over L^S); min_open adds the cut sum(1 - z) >= min_open (a proven lower bound)."""
     assert 0 in scen_ids, "the base case is coupled to every scenario: it must be included"
     model = gp.Model(env=env)
 
@@ -128,14 +141,20 @@ def build_model(scen_ids, max_switched=None, z_fixed=None, env=None):
         for l in set_L:
             if l not in set_LS:
                 model.addConstr(var_z[l] == 1)
+        n_open = gp.quicksum(1 - var_z[l] for l in set_LS)
         if max_switched is not None:
-            model.addConstr(gp.quicksum(1 - var_z[l] for l in set_LS) <= max_switched)
+            model.addConstr(n_open <= max_switched)
+        if min_open:
+            model.addConstr(n_open >= min_open)
     else:
         var_z = z_fixed   # constants: the big-M terms below become plain numbers
 
-    # objective: base-case generation cost
-    model.setObjective(gp.quicksum(par_cost[g] * var_p[(g, 0)] * BASE_MVA for g in set_G),
-                       GRB.MINIMIZE)
+    if objective == "switching":
+        assert z_fixed is None, "the switching objective needs free z"
+        model.setObjective(n_open, GRB.MINIMIZE)
+    else:   # base-case generation cost
+        model.setObjective(gp.quicksum(par_cost[g] * var_p[(g, 0)] * BASE_MVA for g in set_G),
+                           GRB.MINIMIZE)
 
     # constraint names end in ',c]' so the scenarios of an IIS can be read back
     for c in scen_ids:
@@ -194,52 +213,81 @@ def failing_contingencies(z_fixed, env):
     return failing
 
 
+def save_topology(z, path):
+    pd.DataFrame({"branch_id": set_L, "label": [par_label[l] for l in set_L],
+                  "z": [z[l] for l in set_L]}).to_csv(path, index=False)
+
+
 def screen_k(K, core, args, env, out_dir):
-    """Constraint generation for one K. Returns a result row for the summary."""
+    """Constraint generation for one K (K = None: minimum-switching mode, no K limit).
+    Returns a result row for the summary."""
     core = list(core)
     t0 = time.time()
+    min_sw = K is None
+    tag = "minsw" if min_sw else f"K{K}"
     for it in range(1, args.max_iter + 1):
-        model, var_z = build_model(core, max_switched=K, env=env)
+        if min_sw:
+            model, var_z = build_model(core, max_switched=args.max_open, env=env,
+                                       objective="switching", min_open=args.min_open)
+        else:
+            model, var_z = build_model(core, max_switched=K, env=env)
         model.setParam("OutputFlag", 1)                        # always write the log file...
         model.setParam("LogToConsole", 1 if args.verbose else 0)   # ...console only if asked
-        log_file = f"{out_dir}/K{K}_it{it}.log"
+        log_file = f"{out_dir}/{tag}_it{it}.log"
         if os.path.exists(log_file):
             os.remove(log_file)   # Gurobi appends to an existing log; keep only this run
         model.setParam("LogFile", log_file)
         model.setParam("MIPGap", args.mip_gap)
         model.setParam("TimeLimit", args.time_limit)
         model.setParam("MIPFocus", 1)
+        if args.norel_time:
+            model.setParam("NoRelHeurTime", args.norel_time)   # finds feasible z before the root LP
         model.setParam("DualReductions", 0)   # INFEASIBLE instead of INF_OR_UNBD
         if args.threads:
             model.setParam("Threads", args.threads)
         model.optimize()
 
-        print(f"  K={K} it={it}: core={len(core)} scenarios, status={model.status}, "
+        print(f"  {tag} it={it}: core={len(core)} scenarios, status={model.status}, "
               f"{model.Runtime:.0f}s", flush=True)
 
-        row = {"K": K, "iterations": it, "core_size": len(core),
+        row = {"K": "min" if min_sw else K, "iterations": it, "core_size": len(core),
                "core": ";".join(scen[c]["desc"] for c in core)}
 
         if model.status == GRB.INFEASIBLE:
-            return {**row, "verdict": "infeasible", "time_s": round(time.time() - t0, 1)}
+            bounds = (([f">= {args.min_open}"] if args.min_open else [])
+                      + ([f"<= {args.max_open}"] if args.max_open is not None else []))
+            verdict = ("infeasible for every topology"
+                       + (f" with {' and '.join(bounds)} open" if bounds else "")
+                       if min_sw else "infeasible")
+            return {**row, "verdict": verdict, "time_s": round(time.time() - t0, 1)}
         if model.SolCount == 0:
             return {**row, "verdict": "unknown (time limit, no solution)",
                     "time_s": round(time.time() - t0, 1)}
 
         z = {l: int(round(var_z[l].X)) for l in set_L}
-        core_cost, core_bound = model.ObjVal, model.ObjBound
+        core_obj, core_bound = model.ObjVal, model.ObjBound
         model.dispose()
+        n_open = sum(1 - z[l] for l in set_LS)
 
         failing = failing_contingencies(z, env)
-        print(f"         topology opens {[par_label[l] for l in set_L if z[l] == 0]}, "
+        print(f"         topology opens {n_open}: {[par_label[l] for l in set_L if z[l] == 0]}, "
               f"{len(failing)} contingencies in the IIS of the full LP", flush=True)
         if not failing:
-            pd.DataFrame({"branch_id": set_L, "label": [par_label[l] for l in set_L],
-                          "z": [z[l] for l in set_L]}).to_csv(f"{out_dir}/K{K}_topology.csv",
-                                                                index=False)
+            if min_sw:
+                # The core is a relaxation, so its bound is a lower bound on K_min for the full
+                # problem too (the objective is an integer: round the bound up).
+                k_lower = max(math.ceil(core_bound - 1e-6), args.min_open)
+                save_topology(z, f"{out_dir}/min_switching_topology.csv")
+                save_topology(z, f"{out_dir}/K{n_open}_topology.csv")   # warm start for K = n_open
+                return {**row, "verdict": "feasible (full N-1)",
+                        "n_open": n_open, "k_min_lower_bound": k_lower,
+                        "k_min_proven": n_open == k_lower,
+                        "opened": ";".join(par_label[l] for l in set_L if z[l] == 0),
+                        "time_s": round(time.time() - t0, 1)}
+            save_topology(z, f"{out_dir}/K{K}_topology.csv")
             return {**row, "verdict": "feasible (full N-1)",
                     "opened": ";".join(par_label[l] for l in set_L if z[l] == 0),
-                    "core_cost": round(core_cost, 2), "core_bound": round(core_bound, 2),
+                    "core_cost": round(core_obj, 2), "core_bound": round(core_bound, 2),
                     "time_s": round(time.time() - t0, 1)}
         core += [c for c in failing if c not in core]
 
@@ -256,6 +304,9 @@ def main():
     ap.add_argument("--time-limit", type=float, default=600, help="per core solve [s]")
     ap.add_argument("--mip-gap", type=float, default=1e-2)
     ap.add_argument("--threads", type=int, default=0, help="0 = all cores")
+    ap.add_argument("--norel-time", type=float, default=0,
+                    help="Gurobi NoRelHeurTime per core solve [s] (0 = off); counts toward "
+                         "--time-limit")
     ap.add_argument("--max-iter", type=int, default=10)
     ap.add_argument("--stop-at-first", action="store_true",
                     help="stop the sweep at the first K feasible for the full N-1 set")
@@ -263,6 +314,15 @@ def main():
     ap.add_argument("--core-from", metavar="CSV",
                     help="start from the final core of a previous run (its summary CSV)...")
     ap.add_argument("--core-k", type=int, help="...taken from the row of this K")
+    ap.add_argument("--min-switching", action="store_true",
+                    help="find K_min instead: min sum(1 - z) over L^S, no K limit (--k-min/--k-max "
+                         "and --stop-at-first are ignored)")
+    ap.add_argument("--min-open", type=int, default=0,
+                    help="with --min-switching: add the cut sum(1 - z) >= this (a K proven "
+                         "infeasible + 1, e.g. 4 for redispatch_only)")
+    ap.add_argument("--max-open", type=int, default=None,
+                    help="with --min-switching: add the cut sum(1 - z) <= this (search only "
+                         "topologies with at most this many open branches)")
     args = ap.parse_args()
 
     exclude = HARD if args.formulation == "redispatch_with_exclusions" else []
@@ -289,6 +349,17 @@ def main():
     print(f"Initial core: {[scen[c]['desc'] for c in core]}")
 
     env  = gp.Env(params={"OutputFlag": 0})
+
+    if args.min_switching:
+        row = screen_k(None, core, args, env, out_dir)
+        pd.DataFrame([row]).to_csv(f"{out_dir}/summary_min_switching.csv", index=False)
+        print(f"\nMinimum switching: {row['verdict']}")
+        if "n_open" in row:
+            proven = "proven" if row["k_min_proven"] else f"lower bound {row['k_min_lower_bound']}"
+            print(f"K_min = {row['n_open']} ({proven}) -> opens {row['opened']}")
+        print(f"Saved to {out_dir}/")
+        return
+
     rows = []
     for K in range(args.k_min, args.k_max + 1):
         rows.append(screen_k(K, core, args, env, out_dir))
