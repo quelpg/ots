@@ -35,7 +35,9 @@
       and what Analysis B / OTS validation add
 
 Notes:
-- Do not run two Gurobi jobs at the same time (both use all 16 cores).
+- Do not run two Gurobi jobs at the same time with the default threads (each uses all cores);
+  for parallel runs pass `--threads` to `sweep_k.py` so the jobs split the cores.
+  The WLS license accepted 10 simultaneous sessions (tested 2026-11-09).
 - Run long jobs in your own PowerShell, not inside Claude (they stop if the app closes),
   with Windows sleep set to "Never" while plugged in.
 
