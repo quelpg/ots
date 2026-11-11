@@ -12,16 +12,16 @@ relaxation of the full one:
 The core starts with the base case plus the contingencies that make the SC-DCOPF infeasible
 on the full topology (vulnerability analysis, Section 10 of ../sc-dcopf/sc-dcopf.ipynb).
 
-Same formulation as ots-sc-dcopf.ipynb.
+Same formulation as ../ots-sc-dcopf.ipynb. Part of Analysis B (full C_T feasibility).
 
 Minimum-switching mode (--min-switching): same constraint generation, but the core MILP
 minimizes the number of open branches, sum(1 - z) over L^S, with no K limit. The result is a
 topology feasible for the full N-1 set with n_open branches open, so K_min <= n_open; the bound
 of the last core MILP is a lower bound on K_min (the core is a relaxation), so K_min is proven
 when both match. The topology is saved as min_switching_topology.csv and as
-K<n_open>_topology.csv, which ots-sc-dcopf.ipynb uses as the warm start for K = n_open.
+K<n_open>_topology.csv, which ../ots-sc-dcopf.ipynb uses as the warm start for K = n_open.
 
-Usage (from project/ots-sc-dcopf/):
+Usage (from project/ots-sc-dcopf/full-ct-feasibility/; results go to ../results/):
     python core_screening.py --k-min 1 --k-max 10
     python core_screening.py --k-min 4 --k-max 4 --threads 8
     python core_screening.py --formulation redispatch_with_exclusions --k-min 1 --k-max 3
@@ -40,7 +40,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 # --- data (same layout as the notebook) ---
-ROOT   = ".."
+ROOT   = "../.."
 SOURCE = "matpower"
 PROC   = f"{ROOT}/processed/{SOURCE}"
 
@@ -328,7 +328,7 @@ def main():
     exclude = HARD if args.formulation == "redispatch_with_exclusions" else []
     set_scenarios(exclude)
 
-    out_dir = f"results/{SOURCE}/{args.formulation}/screening"
+    out_dir = f"../results/{SOURCE}/{args.formulation}/screening"
     os.makedirs(out_dir, exist_ok=True)
 
     # Losing a generator cannot be fixed by switching if the remaining capacity is too small.
