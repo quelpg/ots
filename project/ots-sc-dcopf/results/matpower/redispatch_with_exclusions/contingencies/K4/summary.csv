@@ -1,9 +1,9 @@
 metric,value
 base_cost_usd_per_h,106925.7
-best_bound_usd_per_h,99232.22
-mip_gap,0.07195163853946704
+best_bound_usd_per_h,98689.09
+mip_gap,0.0770311304744348
 solver_status,9.0
-runtime_s,21600.0
+runtime_s,9000.3
 total_load_mw,4242.0
 total_generation_mw,4242.0
 n_scenarios,194.0
