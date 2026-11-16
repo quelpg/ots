@@ -86,7 +86,11 @@ abaixo se referem a ele.
       mínimo em λ = 0,852 é base + linha 8-5 + linha 26-30 + gerador da barra 10 + gerador da barra 66
       (tirando qualquer um, fica viável). Sem a maior unidade (1.182 MW) ainda sobram 5.333 MW
 - [ ] Parâmetro λ (`load_factor`) e lista completa como padrão no pacote `model/`
-- [ ] Referência: grade de λ (0,50 … 0,85): despacho sem restrição de rede, DCOPF, SC-DCOPF, prêmio de segurança
+- [x] Referência: grade de λ (`reference/run_reference.py`): prêmio de segurança 3,7% (0,50), 3,2%,
+      4,0% (0,70), 8,4% (0,75), 14,1% (0,80), 19,7% (0,85); custo da rede no caso base cai com a carga
+      (1.054 → ~50 $/h); nenhuma linha no limite no caso base do SC-DCOPF
+- [ ] Analisar as linhas abertas por cada critério (carregamento, μ, PTDF própria): o TD escolhe
+      linhas no limite em contingência + linhas leves em volta; LP/PD só linhas leves
 - [ ] CS1 (custo, λ ≤ λ_max): heurística em todos os λ da grade; MILP com warm start em 2–3 λ
       escolhidos pela grade
 - [ ] CS2 (recuperar a viabilidade, λ > λ_max; ex.: 0,90 / 0,95 / 1,0): LP relaxado (folgas nos

@@ -1,6 +1,6 @@
 # SC-DCOPF — Results Notes (IEEE 118-bus, MATPOWER data)
 
-> Tracking of results. Numeric CSVs live under `results/<formulation>/<config>/`.
+> Tracking of results. Numeric CSVs live under `results/matpower/<formulation>/<config>/lambda1.000/`.
 > This file is for notes and interpretation.
 >
 > Produced by `sc-dcopf.ipynb`, now in `../old/pre-reorg-2026-11/sc-dcopf/` (reorganization of
@@ -23,7 +23,7 @@
 > contingencies one at a time, so the excluded set depends on that order: it is *a* minimal set,
 > not the only one. Use the current set (`EXCLUDE` in the notebooks) in the thesis.
 
-See `results/vulnerability/`. Each contingency is solved **in isolation** (one DCOPF per
+See `results/matpower/vulnerability/lambda1.000/`. Each contingency is solved **in isolation** (one DCOPF per
 state), giving the **complete and deterministic** picture of which ones fail — unlike the IIS,
 which only reveals one conflict at a time.
 
@@ -119,7 +119,7 @@ vulnerability sweep):
 ## 4. Base case — details (common to all formulations)
 
 The base case (C={0}) has no contingencies, so exclusion does not affect it: same result in any
-formulation. See `results/redispatch_only/basecase/`.
+formulation. See `results/matpower/redispatch_only/basecase/lambda1.000/K0/`.
 
 - 19 generators available, **13 dispatched** (merit order: cheapest first).
 - Cheapest generator (bus 100, c1=12.61) at **100%** (653 MW). Several cheap units at full load.
