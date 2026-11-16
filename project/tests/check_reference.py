@@ -17,9 +17,9 @@ import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from model.build import OTSModel, unconstrained_dispatch_cost                      # noqa: E402
-from model.data import load_system                                       # noqa: E402
-from model.solution import isolated_buses, saved_topology                # noqa: E402
+from model.build import OTSModel, unconstrained_dispatch, unconstrained_dispatch_cost                      # noqa: E402
+from model.data import add_renewables, load_system                       # noqa: E402
+from model.solution import curtailment, isolated_buses, read_solution, saved_topology   # noqa: E402
 from model.states import build_states, participation_factors             # noqa: E402
 
 sys.path.insert(0, os.path.join(ROOT, "heuristics"))
@@ -153,6 +153,40 @@ def main():
         check(f"T3  lambda={lam:.2f}: unconstrained dispatch {ud_ref:,.2f} / DCOPF {dc_ref:,.2f}",
               close(ud, ud_ref, 0.01) and close(dc, dc_ref, 0.01), f"{ud:,.2f} / {dc:,.2f}")
     m.dispose()
+
+    # --- renewables (CS3): concentrated scenario, 20% of the load, lambda = 0.80 -----------------
+    lam, pen = 0.80, 0.20
+    sr = add_renewables(s, "concentrated", pen, lam)
+    st_r = build_states(sr, FULL)
+    ren = np.flatnonzero(sr.is_renewable)
+    check("renewables: 4 units appended, 197 + 4 states (loss of each renewable plant in C_G)",
+          len(ren) == 4 and len(st_r) == 201, f"{len(ren)} units, {len(st_r)} states")
+    check("renewables: available = 20% x 0.80 x 4,242 MW = 678.72 MW",
+          close(sr.pmax[ren].sum() * 100, 678.72, 0.01), f"{sr.pmax[ren].sum() * 100:.2f}")
+    a = participation_factors(sr, st_r)
+    gen_st = [c for c in st_r if c.kind == "gen"]
+    ok_conv = all(abs(a[sr.conventional, c.id].sum() - 1) < 1e-12 for c in gen_st)
+    ok_ren = all((a[ren, c.id] == 0).all() for c in gen_st)
+    check("renewables: alpha sums to 1 over conventional units in every generator contingency; alpha = 0 for renewables",
+          ok_conv and ok_ren)
+    m = OTSModel(sr, st_r, load_factor=lam)
+    m.solve()
+    sol = read_solution(m)
+    ok = sol is not None
+    if ok:
+        p_r = sol.p0[ren]
+        avail, curt = curtailment(sr, sol)
+        resp = all(np.allclose(m.P.X[ren, c.id], m.P.X[ren, 0]) for c in st_r if not (c.kind == "gen" and c.element in ren))
+        check("renewables: SC-DCOPF feasible; 0 <= P_r <= Gbar_r; curtailment >= 0",
+              (p_r >= -1e-9).all() and (p_r <= sr.pmax[ren] + 1e-9).all() and curt >= -1e-6,
+              f"cost {sol.cost:,.2f}, curtailment {curt:.2f} MW")
+        check("renewables: cost lower than without renewables (81,401.76)", sol.cost < 81401.76, f"{sol.cost:,.2f}")
+        check("renewables: P_r,c = P_r,0 in every state where the unit is in service", resp)
+    else:
+        check("renewables: SC-DCOPF feasible", False, m.status_name)
+    m.dispose()
+    cu, curt0 = unconstrained_dispatch(sr, lam)
+    check("renewables: no curtailment without network (no energy curtailment at 20%)", curt0 == 0.0, f"{curt0}")
 
     n_fail = results.count(False)
     print(f"\n{len(results) - n_fail}/{len(results)} checks passed in {time.time() - t0:.0f} s")

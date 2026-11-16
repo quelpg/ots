@@ -139,7 +139,16 @@ def dispatch_table(system, sol):
                        "p_mw": mw.round(2), "pmax_mw": pmax.round(2),
                        "loading_pct": np.where(pmax > 0, 100 * mw / np.where(pmax > 0, pmax, 1), 0).round(1),
                        "c1": system.cost.round(3)})
+    if system.is_renewable.any():                 # pmax_mw of a renewable unit = available Gbar_r
+        df["renewable"] = system.is_renewable
     return df.sort_values("c1", kind="stable")
+
+
+def curtailment(system, sol):
+    """(available, curtailed) renewable power in the base case [MW]: C = sum_r (Gbar_r - P_r,0)."""
+    ren = system.is_renewable
+    avail = system.pmax[ren].sum() * system.base_mva
+    return avail, avail - sol.p0[ren].sum() * system.base_mva
 
 
 def line_loading_table(system, sol):
@@ -187,6 +196,10 @@ def report(log, model, sol):
     log.info(f"  States          : {len(model.states)}")
     log.info(f"  Switching limit : K = {sol.K}")
     log.info(f"  Lines open      : {len(sol.open_ids)} -> {[s.label[l] for l in sol.open_ids]}")
+    if s.is_renewable.any():
+        avail, curt = curtailment(s, sol)
+        log.info(f"  Renewables      : {avail:,.2f} MW available, curtailment {curt:,.2f} MW "
+                 f"({100 * curt / avail if avail else 0:.1f}%)")
     log.info(f"  Runtime         : {sol.runtime:.1f} s")
     disp = dispatch_table(s, sol)
     act = disp[disp.p_mw > 0.01]
@@ -222,6 +235,9 @@ def export(log, model, sol, out_dir, meta=None):
         "theta_max_rad": model.theta_max, "objective": sol.objective,
         "n_states_with_islands": len(isl),
         "n_states_isolating_load_or_gen": len(forbidden_islands(s, model.states, sol.z)),
+        "renewable_scenario": s.renewables or "none", "renewable_penetration": s.penetration,
+        "renewable_available_mw": round(curtailment(s, sol)[0], 2),
+        "curtailment_mw": round(curtailment(s, sol)[1], 2),
     }
     metrics.update(meta or {})
     pd.DataFrame({"metric": list(metrics), "value": list(metrics.values())}).to_csv(

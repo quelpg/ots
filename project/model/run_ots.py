@@ -14,7 +14,7 @@ if __package__ in (None, ""):                       # allow `python model/run_ot
     __package__ = "model"
 
 from model.build import MILP_PARAMS, OTSModel
-from model.data import load_system
+from model.data import case_tag, load_case
 from model.solution import cheapest_saved, export, get_logger, read_solution, report
 from model.states import CONFIG_NAME, EXCLUSIONS, build_states, summary_lines
 
@@ -44,6 +44,10 @@ def parse_args(argv=None):
                    help="states besides the base case: all (default), lines, gens, none")
     g.add_argument("--load-factor", type=float, default=1.0,
                    help="lambda: every load = lambda x nominal load (default: 1.0)")
+    g.add_argument("--renewables", default=None,
+                   help="renewable scenario (cs3-renewables/scenarios/<name>.csv, or a CSV path); default: none")
+    g.add_argument("--penetration", type=float, default=0.0,
+                   help="renewable available power as a share of lambda x nominal load, e.g. 0.20 (default: 0)")
     g.add_argument("--objective", default="cost", choices=["cost", "max_load", "min_switching"],
                    help="cost (default); max_load (maximize lambda, --load-factor is ignored); "
                         "min_switching (MILP: minimum number of open lines that makes N-1 feasible "
@@ -87,14 +91,14 @@ def k_tag(args):
 
 def main(argv=None):
     args = parse_args(argv)
-    lam_tag = "max_load" if args.objective == "max_load" else f"lambda{args.load_factor:.3f}"
+    lam_tag = "max_load" if args.objective == "max_load" else case_tag(args.load_factor, args.renewables, args.penetration)
     base_dir = os.path.join(args.out_root, args.source, args.formulation, CONFIG_NAME[args.contingencies], lam_tag)
     out_dir = args.out_dir or os.path.join(base_dir, k_tag(args))
     log = get_logger(out_dir)
     log.info(f"run_ots.py {' '.join(sys.argv[1:])}")
     log.info(f"output -> {out_dir}")
 
-    system = load_system(args.source)
+    system = load_case(args.source, args.renewables, args.penetration, args.load_factor)
     for line in system.summary_lines():
         log.info(line)
     states = build_states(system, args.formulation, args.contingencies)

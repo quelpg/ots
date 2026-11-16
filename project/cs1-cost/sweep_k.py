@@ -22,7 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from model.build import MILP_PARAMS, OTSModel                                   # noqa: E402
-from model.data import load_system                                              # noqa: E402
+from model.data import case_tag, load_case                                      # noqa: E402
 from model.solution import cheapest_saved, export, get_logger, read_solution, report   # noqa: E402
 from model.states import EXCLUSIONS, build_states, summary_lines                # noqa: E402
 
@@ -40,6 +40,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], epilog=EPILOG,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--load-factor", type=float, required=True, help="lambda")
+    ap.add_argument("--renewables", default=None,
+                    help="renewable scenario (cs3-renewables/scenarios/<name>.csv, or a CSV path); default: none")
+    ap.add_argument("--penetration", type=float, default=0.0,
+                    help="renewable available power as a share of lambda x nominal load, e.g. 0.20 (default: 0)")
     ap.add_argument("--k-min", type=int, default=1, help="first K (default: 1)")
     ap.add_argument("--k-max", type=int, default=8, help="last K (default: 8)")
     ap.add_argument("--time-limit", type=float, default=1800, help="[s] per K (default: 1800)")
@@ -59,11 +63,11 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     lam_dir = os.path.join(args.out_root, args.source, args.formulation, "contingencies",
-                           f"lambda{args.load_factor:.3f}")
+                           case_tag(args.load_factor, args.renewables, args.penetration))
     log = get_logger(lam_dir)
     log.info(f"sweep_k.py {' '.join(sys.argv[1:])}")
     log.info(f"output -> {lam_dir}")
-    s = load_system(args.source)
+    s = load_case(args.source, args.renewables, args.penetration, args.load_factor)
     for line in s.summary_lines():
         log.info(line)
     states = build_states(s, args.formulation, "all")

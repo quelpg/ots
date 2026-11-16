@@ -255,6 +255,20 @@ class OTSModel:
         self.env.dispose()
 
 
+def unconstrained_dispatch(system, load_factor=1.0):
+    """Unconstrained dispatch (no network: single balance, generator limits, merit order).
+    Returns (cost [$/h], renewable curtailment [MW]) or (None, None) if generation is short.
+    Renewables have cost 0, so they come first; curtailment here is energy curtailment (more
+    renewable than load), not caused by the network."""
+    cost = unconstrained_dispatch_cost(system, load_factor)
+    if cost is None:
+        return None, None
+    ren = system.is_renewable
+    avail = system.pmax[ren].sum()
+    load = load_factor * system.pd_nom.sum() - system.pmin[~ren].sum()
+    return cost, max(avail - load, 0.0) * system.base_mva
+
+
 def unconstrained_dispatch_cost(system, load_factor=1.0):
     """Unconstrained dispatch: cost of serving the load with no network constraints (single
     balance, generator limits only, merit order) [$/h]. DCOPF - this = base-case network cost."""

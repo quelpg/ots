@@ -38,7 +38,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from model.build import OTSModel                                           # noqa: E402
-from model.data import load_system                                         # noqa: E402
+from model.data import case_tag, load_case                                 # noqa: E402
 from model.solution import (export, forbidden_islands, get_logger, islanding_by_state,   # noqa: E402
                             isolated_buses, read_solution)
 from model.states import CONFIG_NAME, EXCLUSIONS, build_states, summary_lines   # noqa: E402
@@ -354,6 +354,10 @@ def main(argv=None):
     ap.add_argument("--contingencies", default="all", choices=list(CONFIG_NAME),
                     help="states besides the base case (default: all)")
     ap.add_argument("--load-factor", type=float, default=1.0, help="lambda (default: 1.0)")
+    ap.add_argument("--renewables", default=None,
+                    help="renewable scenario (cs3-renewables/scenarios/<name>.csv, or a CSV path); default: none")
+    ap.add_argument("--penetration", type=float, default=0.0,
+                    help="renewable available power as a share of lambda x nominal load, e.g. 0.20 (default: 0)")
     ap.add_argument("--criteria", nargs="+", default=CRITERIA, choices=CRITERIA,
                     help="criteria to run, each one separately (default: all five)")
     ap.add_argument("--max-open", type=int, default=10, help="stop after this many openings (default: 10)")
@@ -368,11 +372,11 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     out = os.path.join(args.out_root, args.source, args.formulation, CONFIG_NAME[args.contingencies],
-                       f"lambda{args.load_factor:.3f}", "heuristic")
+                       case_tag(args.load_factor, args.renewables, args.penetration), "heuristic")
     log = get_logger(out)
     log.info(f"sequential.py {' '.join(sys.argv[1:])}")
     log.info(f"output -> {out}")
-    system = load_system(args.source)
+    system = load_case(args.source, args.renewables, args.penetration, args.load_factor)
     for line in system.summary_lines():
         log.info(line)
     states = build_states(system, args.formulation, args.contingencies)

@@ -47,11 +47,14 @@ def build_states(system, formulation="redispatch_only", contingencies="all"):
 
 
 def participation_factors(system, states):
-    """alpha[g, c] = Pmax_g / sum of Pmax in service in c, for generator contingencies (0 elsewhere)."""
+    """alpha[g, c] for generator contingencies (0 elsewhere), eq. (alpha) of the methodology:
+    alpha = Pmax_g / sum of the Pmax of the CONVENTIONAL units in service in c, for conventional g;
+    alpha = 0 for renewable units (they do not take part in primary regulation and stay at their
+    base-case output). The lost unit may be conventional or renewable."""
     alpha = np.zeros((system.n_gen, len(states)))
     for s in states:
         if s.kind == "gen":
-            on = np.ones(system.n_gen, dtype=bool)
+            on = system.conventional.copy()
             on[s.element] = False
             alpha[on, s.id] = system.pmax[on] / system.pmax[on].sum()
     return alpha
@@ -63,9 +66,11 @@ def summary_lines(system, states, formulation, contingencies):
     names = [f"line {system.label[e]}" if k == "line" else system.gen_name(e) for k, e in excl]
     n_line = sum(s.kind == "line" for s in states)
     n_gen = sum(s.kind == "gen" for s in states)
+    n_ren = sum(s.kind == "gen" and system.is_renewable[s.element] for s in states)
     return [
         f"formulation = {formulation} | contingencies = {contingencies} "
         f"({CONFIG_NAME[contingencies]}) | excluded: {names or 'none'}",
-        f"|C_T| = {n_line} branches | |C_G| = {n_gen} generators | "
+        f"|C_T| = {n_line} branches | |C_G| = {n_gen} generators"
+        + (f" ({n_ren} renewable)" if n_ren else "") + " | "
         f"|C| = {len(states)} states (1 base + {len(states) - 1} contingencies)",
     ]

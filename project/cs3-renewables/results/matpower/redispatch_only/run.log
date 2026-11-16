@@ -1,0 +1,17 @@
+2026-11-16 18:21:21  run_scenarios.py 
+2026-11-16 18:21:28  none                   0% (    0.0 MW): unconstrained 71,283 (curt 0) | DCOPF 71332.19 (curt 0.0) | SC-DCOPF 81401.76 (curt 0.0)
+2026-11-16 18:21:33  concentrated          10% (  339.4 MW): unconstrained 62,804 (curt 0) | DCOPF 67019.16 (curt 0.0) | SC-DCOPF 77103.88 (curt 0.0)
+2026-11-16 18:21:38  concentrated          20% (  678.7 MW): unconstrained 54,366 (curt 0) | DCOPF 64287.86 (curt 108.15) | SC-DCOPF 74836.77 (curt 159.09)
+2026-11-16 18:21:42  concentrated          30% ( 1018.1 MW): unconstrained 46,016 (curt 0) | DCOPF 63800.57 (curt 405.36) | SC-DCOPF 74663.73 (curt 485.24)
+2026-11-16 18:21:47  distributed           10% (  339.4 MW): unconstrained 62,804 (curt 0) | DCOPF 63998.71 (curt 0.0) | SC-DCOPF 73337.3 (curt 0.0)
+2026-11-16 18:21:51  distributed           20% (  678.7 MW): unconstrained 54,366 (curt 0) | DCOPF 56826.28 (curt 0.0) | SC-DCOPF 65609.88 (curt 0.0)
+2026-11-16 18:21:55  distributed           30% ( 1018.1 MW): unconstrained 46,016 (curt 0) | DCOPF 49997.51 (curt 4.44) | SC-DCOPF 58195.29 (curt 4.44)
+2026-11-16 18:21:55  
+    scenario  penetration_pct  load_mw  renewable_available_mw  unconstrained_usd_h  unconstrained_curtailment_mw  dcopf_usd_h  dcopf_curtailment_mw  scdcopf_usd_h  scdcopf_curtailment_mw  security_premium_usd_h
+        none                0   3393.6                     0.0             71282.86                           0.0     71332.19                  0.00       81401.76                    0.00                10069.57
+concentrated               10   3393.6                   339.4             62804.48                           0.0     67019.16                  0.00       77103.88                    0.00                10084.72
+concentrated               20   3393.6                   678.7             54366.24                           0.0     64287.86                108.15       74836.77                  159.09                10548.91
+concentrated               30   3393.6                  1018.1             46016.25                           0.0     63800.57                405.36       74663.73                  485.24                10863.16
+ distributed               10   3393.6                   339.4             62804.48                           0.0     63998.71                  0.00       73337.30                    0.00                 9338.59
+ distributed               20   3393.6                   678.7             54366.24                           0.0     56826.28                  0.00       65609.88                    0.00                 8783.60
+ distributed               30   3393.6                  1018.1             46016.25                           0.0     49997.51                  4.44       58195.29                    4.44                 8197.78
