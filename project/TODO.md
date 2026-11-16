@@ -36,8 +36,13 @@ abaixo se referem a ele.
 
 - [x] Parte 1: mover as pastas (commit só de renomeações), READMEs, caminhos do pré-processamento
       (rodado de novo: `processed/` e o diagrama não mudaram)
-- [ ] Parte 2: pacote `model/` (`data.py`, `states.py`, `build.py`, `solution.py`) + `tests/check_reference.py`
-      (93.152,38 sem N-1; 109.681,25 em K = 0; 107.665,95 na topologia de K = 2; MILP ótimo em K = 1 e 2)
+- [x] Parte 2: pacote `model/` (`data.py`, `states.py`, `build.py`, `solution.py`, `run_ots.py`) +
+      `tests/check_reference.py` (21/21): reproduz 109.681,25 / 107.665,95, o custo salvo de todas as
+      topologias K0..K10, a grade de λ e λ_max = 0,8501; CSVs idênticos aos do notebook (K2).
+      Objetivos: custo, max λ, chaveamento mínimo (K_min). Força bruta K = 1 confirma o ótimo do MILP
+- [ ] Portar a heurística (`heuristics/ranking_test.py`) para o pacote
+- [ ] Texto: o limite de ângulo de ±0,6 rad fica ativo em cargas menores mesmo sem limite térmico
+      (custo da rede sem limite térmico > despacho sem rede em até 30 $/h em λ = 0,85)
 - [ ] Reescrever os scripts de cada caso usando o pacote (sweep de K, figura, core screening), cada um
       reproduzindo o resultado antigo
 - [ ] `validation/`: `common.py` + um `validate_<caso>.py` por caso de estudo
@@ -81,7 +86,7 @@ abaixo se referem a ele.
       mínimo em λ = 0,852 é base + linha 8-5 + linha 26-30 + gerador da barra 10 + gerador da barra 66
       (tirando qualquer um, fica viável). Sem a maior unidade (1.182 MW) ainda sobram 5.333 MW
 - [ ] Parâmetro λ (`load_factor`) e lista completa como padrão no pacote `model/`
-- [ ] Referência: grade de λ (0,50 … 0,85): copper plate, DCOPF, SC-DCOPF, prêmio de segurança
+- [ ] Referência: grade de λ (0,50 … 0,85): despacho sem restrição de rede, DCOPF, SC-DCOPF, prêmio de segurança
 - [ ] CS1 (custo, λ ≤ λ_max): heurística em todos os λ da grade; MILP com warm start em 2–3 λ
       escolhidos pela grade
 - [ ] CS2 (recuperar a viabilidade, λ > λ_max; ex.: 0,90 / 0,95 / 1,0): LP relaxado (folgas nos

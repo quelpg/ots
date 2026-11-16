@@ -17,7 +17,7 @@ scaled by λ (generation is not scaled). With the original topology, N-1 is feas
 
 | Study case (thesis) | Question | Folder | Status |
 |---|---|---|---|
-| Reference (K = 0) | Cost of N-1 security without switching, per λ: copper plate, DCOPF, SC-DCOPF and the security premium (SC-DCOPF − DCOPF) | `reference/` | λ = 1 with the reduced list done (old code); λ grid to do |
+| Reference (K = 0) | Cost of N-1 security without switching, per λ: unconstrained dispatch (no network), DCOPF, SC-DCOPF; base-case network cost and security premium (SC-DCOPF − DCOPF) | `reference/` | λ = 1 with the reduced list done (old code); λ grid to do |
 | CS1 – Cost reduction (λ ≤ λ_max) | How much does switching reduce the cost, with how many open lines? | `cs1-cost/` | to do: heuristic at every λ, MILP with warm start at 2–3 λ |
 | CS2 – Recovery of N-1 feasibility (λ > λ_max) | How many open lines make N-1 feasible again at a given λ? K_min(λ): violation heuristic + minimum-switching MILP with warm start | `cs2-feasibility/` | at λ = 1, K ≤ 3 proven infeasible (old code); to do |
 | CS3 – Renewables | Concentrated vs. distributed renewables at a fixed feasible λ: curtailment and cost | `cs3-renewables/` | to do |

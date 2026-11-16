@@ -31,7 +31,7 @@
 ## 0. Analysis map
 
 > **Restructured on 2026-11-16** (see `README.md`): every case uses the full contingency list and
-> varies the load level λ (Reference per λ; CS1 cost, λ ≤ λ_max = 0.850; CS2 loadability,
+> varies the load level λ (Reference per λ; CS1 cost, λ ≤ λ_max = 0.850; CS2 recovery of N-1 feasibility,
 > λ > λ_max; CS3 renewables). The K sweep in §1 (λ = 1, reduced list) is now the benchmark of the
 > heuristic (`heuristics/benchmark/`). The table below is the map before the restructuring.
 
@@ -358,7 +358,8 @@ it is valid by construction.
 - [ ] Local search for K = 3–10 (`solution-quality/`), then re-run the improved K with `sweep_k.py`.
 - [ ] Update §1.1 and the figure with the improved costs.
 - [ ] OTS validation: apply topology + dispatch in pandapower and run every contingency (K2, K4, K8).
-- [ ] Brute force K = 1 (177 LPs): must return 64-65 at $108,442.22/h.
+- [x] Brute force K = 1 (177 LPs): returns 64-65 at $108,442.22/h, the MILP optimum
+      (`tests/check_reference.py --slow`, 2026-11-16).
 - [ ] Per-state islanding check on the §1 topologies (§5.3).
 - [ ] Full $\mathcal{C}_T$ case (8-5 and 38-65 included): minimum feasible K.
 - [ ] Export a `summary.csv` also for infeasible runs (status, K, time) so the K sweep is recorded.
