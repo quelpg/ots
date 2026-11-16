@@ -15,7 +15,7 @@ Load level λ = 1 (nominal load, 4,242 MW). Contingency list: reduced (`redispat
 | `contingencies/K0..K10/` | MILP K sweep (Gurobi, chained warm start; K ≥ 3 stopped at the time limit with a gap of ~7%) |
 | `basecase/` | OTS without N-1 |
 | `contingencies_run1/` | *(to be created)* backup of `contingencies/` before any rerun |
-| `contingencies_improved/K<n>/` | *(to be created)* topologies from the heuristic, used as warm starts |
+| `contingencies/lambda1.000/heuristic/` | *(to be created)* heuristic paths per criterion (`../sequential.py`), usable as warm starts |
 
 `logs/`: console logs of the sweep runs.
 

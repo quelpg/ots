@@ -4,7 +4,7 @@ Values: the old notebooks' results (heuristics/benchmark/, reference/) and the l
 2026-11-16 (reproduced with Gurobi). Prints one line per check and exits with 1 if any fails.
 
     python tests/check_reference.py          # fast checks (~2 min)
-    python tests/check_reference.py --slow   # + brute force K = 1 (177 LPs, ~5 min)
+    python tests/check_reference.py --slow   # + brute force K = 1 and heuristic TD (~8 min)
 """
 
 import argparse
@@ -21,6 +21,9 @@ from model.build import OTSModel, unconstrained_dispatch_cost                   
 from model.data import load_system                                       # noqa: E402
 from model.solution import isolated_buses, saved_topology                # noqa: E402
 from model.states import build_states, participation_factors             # noqa: E402
+
+sys.path.insert(0, os.path.join(ROOT, "heuristics"))
+from sequential import run_sequential, self_ptdf, state_self_ptdf          # noqa: E402
 
 BENCH = os.path.join(ROOT, "heuristics", "benchmark", "results", "matpower",
                      "redispatch_with_exclusions", "contingencies")
@@ -53,6 +56,11 @@ def max_load(model):
     val = model.lam.X[0] if model.status_name == "OPTIMAL" else None
     model.set_objective("cost")
     return val
+
+
+class _Quiet:
+    def info(self, *_):
+        pass
 
 
 def main():
@@ -94,6 +102,11 @@ def main():
     m.set_load_factor(1.0)
     iso = isolated_buses(s, np.ones(s.n_branch))
     check("original topology: no isolated bus", not iso)
+    z = np.ones(s.n_branch)
+    z[[96, 122, 106, 140]] = 0
+    ref = np.column_stack([self_ptdf(s, z, x.element if x.kind == "line" else None) for x in st_red])
+    err = np.abs(ref - state_self_ptdf(s, st_red, z)).max()
+    check("heuristic: self-PTDF by LODF update = direct inversion in every state", err < 1e-9, f"{err:.1e}")
 
     if args.slow:
         t = time.time()
@@ -101,6 +114,13 @@ def main():
         check("slow: brute force K=1 -> 64-65 at 108,442.22 (MILP optimum)",
               best[1] == 96 and close(best[0], 108442.22, 0.01),
               f"{s.label[best[1]]} at {best[0]:,.2f}, {time.time() - t:.0f} s")
+        t = time.time()
+        steps = run_sequential(m, "TD", 10, 90, _Quiet())
+        last = steps[-1] if steps else {}
+        same8 = sorted(x["branch_id"] for x in steps) == [11, 25, 96, 106, 122, 140, 164, 165]
+        check("slow: heuristic TD on the benchmark -> K=8 at 106,784.01, same 8 lines as the MILP",
+              len(steps) == 8 and same8 and close(last.get("cost"), 106784.01, 0.01),
+              f"K={len(steps)}, {last.get('cost')}, {time.time() - t:.0f} s")
     m.dispose()
 
     # --- full list, load levels ---------------------------------------------------------------

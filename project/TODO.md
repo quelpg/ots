@@ -98,6 +98,23 @@ abaixo se referem a ele.
 - A varredura antiga (λ = 1, lista reduzida) vira só validação da heurística
   (`heuristics/benchmark/`). O "CS1b" (aumentar a carga com a lista reduzida) foi descartado.
 
+### Heurística sequencial (2026-11-15; portada para o pacote em 2026-11-16)
+
+- [x] Teste da heurística do Ruiz (Fig. 1) com os critérios LP0, LP, PD, PW, TD (15/11, HiGHS)
+- [x] Portada para o pacote: `heuristics/sequential.py` (duais do `OTSModel`, PTDF por estado com
+      atualização por LODF, não abre linha que ilha o caso base, exporta as topologias para warm start)
+- [x] Conferida no PC com Gurobi: mesmos critérios (1e-8) e mesmos caminhos do teste de 15/11
+- [x] K = 6 (77-80, 89-92, 64-65, 68-69, 103-105, 103-104) e K = 7 (+ 15-19) conferidos no modelo
+      novo, que reproduz o notebook: 106.816,21 e 106.788,34, mais baratas que o MILP salvo
+      (106.826,95 e 106.822,62). K = 8 igual ao MILP (106.784,01, mesmas 8 linhas)
+- [x] LP0 (Fuller sem N-1) nunca propõe linha: no SC-DCOPF os preços do caso base são todos iguais
+      (nenhum limite do caso base ativo; o congestionamento vem das contingências)
+- [ ] Rodar os 5 critérios no benchmark (λ = 1, lista reduzida) → tabela MILP × heurística
+- [ ] Conferir as topologias de K = 6 e 7 no pandapower (passo V)
+- [ ] Revisar a adaptação de PD/PW ao N-1 (normalização por |f₀|, sinal da eq. 42)
+- [ ] Usar as topologias da heurística como warm start do MILP (`run_ots.py --warm-start-dir`)
+- [ ] Modo de violação (LP com folgas) para o CS2
+
 ### Análise A+ - qualidade das soluções (`ots-sc-dcopf/solution-quality/ots-solution-quality.ipynb`)
 
 - [x] Notebook criado: verificação por LP com topologia fixa (reproduz K0-K10), busca local
