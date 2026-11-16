@@ -159,19 +159,53 @@ def solve_topology(model, open_ids, duals):
     return read_solution(model, duals=duals)
 
 
+def overload_mw(model):
+    """Total overload of the last 'min_violation' LP [MW]."""
+    return float(model.m.ObjVal) * model.sys.base_mva
+
+
 def run_sequential(model, criterion, max_open, max_lp, log, export_root=None, milp_cost=None,
-                   allow_islands=False):
-    """Ruiz Fig. 1 with one criterion. Returns the list of accepted steps (dicts)."""
+                   allow_islands=False, tol_mw=1e-4):
+    """Ruiz Fig. 1 with one criterion. Returns the list of accepted steps (dicts).
+
+    Two phases (the first one only if the original topology is infeasible and the model has flow
+    slacks, i.e. CS2):
+      'violation': LP with overload slacks (min total overload); the criteria use its duals; an
+                   opening is kept if the overload decreases. When the overload reaches zero the
+                   topology is checked by the LP WITHOUT slacks (proof of N-1 feasibility).
+      'cost'     : the cost heuristic (CS1), continued from that topology up to max_open.
+    Only feasible topologies (cost phase) are exported as warm starts."""
     s = model.sys
     t0 = time.time()
-    open_ids, n_lp = [], 0
-    sol = solve_topology(model, open_ids, duals=True)
+    open_ids, n_lp, steps, banned = [], 0, [], set()
+
+    def cost_lp(ids):
+        model.set_objective("cost")
+        return solve_topology(model, ids, duals=True)
+
+    def violation_lp(ids):
+        model.set_objective("min_violation")
+        sol = solve_topology(model, ids, duals=True)
+        return sol, (overload_mw(model) if sol is not None else None)
+
+    sol = cost_lp(open_ids)
     n_lp += 1
+    phase, viol = "cost", 0.0
     if sol is None:
-        log.info(f"{criterion}: the original topology is infeasible at this load level")
-        return []
-    log.info(f"{criterion}: start K=0 cost ${sol.cost:,.2f}/h")
-    banned, steps = set(), []
+        if model.S is None:
+            log.info(f"{criterion}: the original topology is infeasible at this load level "
+                     "(build the model with flow_slack=True for the violation phase)")
+            return []
+        phase = "violation"
+        sol, viol = violation_lp(open_ids)
+        n_lp += 1
+        if sol is None:
+            log.info(f"{criterion}: infeasible even without flow limits at this load level")
+            return []
+        log.info(f"{criterion}: start K=0 infeasible, minimum overload {viol:,.2f} MW")
+    else:
+        log.info(f"{criterion}: start K=0 cost ${sol.cost:,.2f}/h")
+
     while len(open_ids) < max_open and n_lp < max_lp:
         cr = criteria_table(model, sol)
         cr = cr[~cr.branch_id.isin(banned) & (cr[criterion] < -1e-9)].sort_values(criterion)
@@ -189,41 +223,69 @@ def run_sequential(model, criterion, max_open, max_lp, log, export_root=None, mi
         if not allow_islands and forbidden_islands(s, model.states, z):
             log.info(f"  reject {s.label[k]:>8}: isolates load or generation in a contingency state")
             continue
-        new = solve_topology(model, trial, duals=True)
-        n_lp += 1
-        if new is None:
-            log.info(f"  reject {s.label[k]:>8}: LP infeasible")
-            continue
-        if new.cost >= sol.cost - 1e-6:
-            log.info(f"  reject {s.label[k]:>8}: cost ${new.cost:,.2f}/h does not improve")
-            continue
-        sol, open_ids = new, trial
+        if phase == "violation":
+            new, new_viol = violation_lp(trial)
+            n_lp += 1
+            if new is None:
+                log.info(f"  reject {s.label[k]:>8}: infeasible even with overload slacks")
+                continue
+            if new_viol >= viol - tol_mw:
+                log.info(f"  reject {s.label[k]:>8}: overload {new_viol:,.2f} MW does not decrease")
+                continue
+            sol, viol, open_ids = new, new_viol, trial
+            if viol <= tol_mw:                            # proof: LP without slacks
+                proof = cost_lp(open_ids)
+                n_lp += 1
+                if proof is None:                         # only a numerical zero: keep searching
+                    log.info(f"  K={len(open_ids)}: overload ~0 but the LP without slacks is infeasible")
+                    model.set_objective("min_violation")
+                else:
+                    sol, phase, viol = proof, "cost", 0.0
+                    banned = set()                        # lines rejected for the overload may lower the cost
+                    log.info(f"  {criterion} K={len(open_ids)}: N-1 FEASIBLE (LP without slacks) "
+                             f"-> ${sol.cost:,.2f}/h")
+        else:
+            new = cost_lp(trial)
+            n_lp += 1
+            if new is None:
+                log.info(f"  reject {s.label[k]:>8}: LP infeasible")
+                continue
+            if new.cost >= sol.cost - 1e-6:
+                log.info(f"  reject {s.label[k]:>8}: cost ${new.cost:,.2f}/h does not improve")
+                continue
+            sol, open_ids = new, trial
         K = len(open_ids)
+        feasible = phase == "cost"
         isl = islanding_by_state(s, model.states, sol.z)
         ref = (milp_cost or {}).get(K)
         step = {"criterion": criterion, "K": K, "opened": s.label[k], "branch_id": k,
-                "cost": round(sol.cost, 2), "milp_cost": ref, "lp_solves": n_lp,
-                "time_s": round(time.time() - t0, 1), "states_with_islands": len(isl),
-                "open_lines": " ".join(s.label[l] for l in open_ids)}
+                "phase": phase, "overload_mw": 0.0 if feasible else round(viol, 4),
+                "cost": round(sol.cost, 2) if feasible else None, "milp_cost": ref,
+                "lp_solves": n_lp, "time_s": round(time.time() - t0, 1),
+                "states_with_islands": len(isl), "open_lines": " ".join(s.label[l] for l in open_ids)}
         steps.append(step)
-        log.info(f"  {criterion} K={K}: open {s.label[k]:>8} -> ${sol.cost:,.2f}/h"
+        log.info(f"  {criterion} K={K}: open {s.label[k]:>8} -> "
+                 + (f"${sol.cost:,.2f}/h" if feasible else f"overload {viol:,.2f} MW")
                  + (f" (MILP ${ref:,.2f}/h)" if ref else "")
                  + (f" | {len(isl)} states with islands" if isl else "")
                  + f" | {n_lp} LPs, {time.time() - t0:.0f} s")
-        if export_root:
+        if export_root and feasible:
             export(_Quiet(), model, sol, os.path.join(export_root, criterion, f"K{K}"),
                    meta={"heuristic": criterion, "lp_solves": n_lp})
-    log.info(f"{criterion}: {len(open_ids)} openings, {n_lp} LPs, {time.time() - t0:.0f} s"
-             + (f", final cost ${sol.cost:,.2f}/h" if steps else ""))
+    log.info(f"{criterion}: {len(open_ids)} openings, {n_lp} LPs, {time.time() - t0:.0f} s, "
+             + (f"final cost ${sol.cost:,.2f}/h" if phase == "cost"
+                else f"NOT feasible, overload {viol:,.2f} MW"))
+    model.set_objective("cost")
     return steps
 
 
-PATH_COLUMNS = ["criterion", "K", "opened", "branch_id", "cost", "milp_cost", "lp_solves", "time_s",
-                "states_with_islands", "open_lines"]
+PATH_COLUMNS = ["criterion", "K", "opened", "branch_id", "phase", "overload_mw", "cost", "milp_cost",
+                "lp_solves", "time_s", "states_with_islands", "open_lines"]
 
 
-def summarize(out, cost0):
-    """One row per criterion from every path_<criterion>.csv in the folder (also from earlier runs)."""
+def summarize(out, cost0, overload0=None):
+    """One row per criterion from every path_<criterion>.csv in the folder (also from earlier runs).
+    cost0: cost at K = 0 (None if infeasible); overload0: overload at K = 0 [MW] (CS2)."""
     rows = []
     for crit in CRITERIA:
         f = os.path.join(out, f"path_{crit}.csv")
@@ -233,12 +295,21 @@ def summarize(out, cost0):
             p = pd.read_csv(f)
         except pd.errors.EmptyDataError:           # criterion that opened nothing
             p = pd.DataFrame(columns=PATH_COLUMNS)
-        best = p.iloc[-1] if len(p) else None
-        cost = float(best["cost"]) if best is not None else cost0
-        rows.append({"criterion": crit, "openings": len(p), "best_cost": round(cost, 2),
-                     "saving_pct": round(100 * (1 - cost / cost0), 3),
-                     "lp_solves": int(best["lp_solves"]) if best is not None else 1,
-                     "time_s": float(best["time_s"]) if best is not None else 0.0})
+        if "phase" not in p.columns:               # files written before the violation phase
+            p["phase"] = "cost"
+        feas = p[p.phase == "cost"]
+        best = feas.iloc[-1] if len(feas) else None
+        row = {"criterion": crit, "openings": len(p)}
+        if overload0 is not None:                  # CS2: infeasible at K = 0
+            row["overload_K0_mw"] = round(overload0, 2)
+            row["first_feasible_K"] = int(feas.K.iloc[0]) if len(feas) else None
+            row["min_overload_mw"] = 0.0 if len(feas) else (float(p.overload_mw.min()) if len(p) else overload0)
+        row["best_cost"] = round(float(best["cost"]), 2) if best is not None else cost0
+        if cost0 is not None and row["best_cost"] is not None:
+            row["saving_pct"] = round(100 * (1 - row["best_cost"] / cost0), 3)
+        row["lp_solves"] = int(p.lp_solves.iloc[-1]) if len(p) else 1
+        row["time_s"] = float(p.time_s.iloc[-1]) if len(p) else 0.0
+        rows.append(row)
     return pd.DataFrame(rows)
 
 
@@ -267,6 +338,8 @@ EPILOG = """examples (from project/):
       --milp-dir heuristics/benchmark/results/matpower/redispatch_with_exclusions/contingencies
   # CS1: full list, lambda = 0.80, all criteria
   python heuristics/sequential.py --load-factor 0.80 --out-root cs1-cost/results
+  # CS2: above lambda_max the original topology is infeasible: violation phase, then cost phase
+  python heuristics/sequential.py --load-factor 0.90 --out-root cs2-feasibility/results
   # only TD, up to 10 openings and 120 LPs
   python heuristics/sequential.py --load-factor 0.85 --criteria TD --max-open 10 --max-lp 120 --out-root cs1-cost/results
 """
@@ -305,7 +378,7 @@ def main(argv=None):
     states = build_states(system, args.formulation, args.contingencies)
     for line in summary_lines(system, states, args.formulation, args.contingencies):
         log.info(line)
-    model = OTSModel(system, states, load_factor=args.load_factor)
+    model = OTSModel(system, states, load_factor=args.load_factor, flow_slack=True)  # slacks fixed at 0 in cost mode
     for line in model.size_lines():
         log.info(line)
     milp = saved_milp_costs(args.milp_dir)
@@ -313,19 +386,27 @@ def main(argv=None):
         log.info(f"MILP costs read from {args.milp_dir}: K = {sorted(milp)}")
 
     sol0 = solve_topology(model, [], duals=True)
-    if sol0 is None:
-        log.info(f"The original topology is infeasible at lambda = {args.load_factor}: "
-                 "the cost heuristic does not apply (use the violation mode, CS2).")
-        return 1
+    cost0, overload0 = (None if sol0 is None else sol0.cost), None
+    if sol0 is None:                                  # CS2: start with the violation phase
+        model.set_objective("min_violation")
+        sol0 = solve_topology(model, [], duals=True)
+        if sol0 is None:
+            log.info(f"Infeasible at lambda = {args.load_factor} even without flow limits: "
+                     "switching cannot be evaluated by the overload (see reference/load_limits.py).")
+            return 1
+        overload0 = overload_mw(model)
+        model.set_objective("cost")
+        log.info(f"K=0 N-1 INFEASIBLE; minimum overload {overload0:,.2f} MW (violation phase first)")
+    else:
+        log.info(f"K=0 cost ${sol0.cost:,.2f}/h")
     criteria_table(model, sol0).to_csv(os.path.join(out, "criteria_K0.csv"), index=False)
-    log.info(f"K=0 cost ${sol0.cost:,.2f}/h; criteria at K=0 saved to criteria_K0.csv")
 
     for crit in args.criteria:
         steps = run_sequential(model, crit, args.max_open, args.max_lp, log,
                                export_root=None if args.no_export else out, milp_cost=milp,
                                allow_islands=args.allow_islands)
         pd.DataFrame(steps, columns=PATH_COLUMNS).to_csv(os.path.join(out, f"path_{crit}.csv"), index=False)
-    tab = summarize(out, sol0.cost)
+    tab = summarize(out, cost0, overload0)
     tab.to_csv(os.path.join(out, "summary_criteria.csv"), index=False)
     log.info("\nSummary by criterion:\n" + tab.to_string(index=False))
     model.dispose()

@@ -1,0 +1,247 @@
+2026-11-16 16:57:48  sequential.py --load-factor 0.88 --max-open 20 --max-lp 100 --out-root cs2-feasibility/results
+2026-11-16 16:57:48  output -> cs2-feasibility/results\matpower\redispatch_only\contingencies\lambda0.880\heuristic
+2026-11-16 16:57:48  source = matpower | base_mva = 100 MVA | slack bus = 69
+2026-11-16 16:57:48  |N| = 118 buses | |G| = 19 generators | |L| = 186 branches (9 radial)
+2026-11-16 16:57:48  nominal load = 4,242.0 MW | total Pmax = 6,515.0 MW
+2026-11-16 16:57:48  formulation = redispatch_only | contingencies = all (contingencies) | excluded: none
+2026-11-16 16:57:48  |C_T| = 177 branches | |C_G| = 19 generators | |C| = 197 states (1 base + 196 contingencies)
+2026-11-16 16:57:50  model: 173,167 rows, 100,460 columns (0 binary), 616,208 nonzeros | built in 1.1 s
+2026-11-16 16:57:50  theta in [-0.6, 0.6] rad | M_l in [2.9, 296.3] pu | F^em = 1.15 F^max
+2026-11-16 16:57:53  K=0 N-1 INFEASIBLE; minimum overload 39.53 MW (violation phase first)
+2026-11-16 16:58:01  LP0: start K=0 infeasible, minimum overload 39.53 MW
+2026-11-16 16:58:01  LP0: no candidate left (all criteria >= 0 or tried)
+2026-11-16 16:58:01  LP0: 0 openings, 2 LPs, 8 s, NOT feasible, overload 39.53 MW
+2026-11-16 16:58:07  LP: start K=0 infeasible, minimum overload 39.53 MW
+2026-11-16 16:58:11    reject    30-17: infeasible even with overload slacks
+2026-11-16 16:59:08    reject    23-32: overload 43.43 MW does not decrease
+2026-11-16 16:59:08    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 16:59:08    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 16:59:10    LP K=1: open    65-66 -> overload 36.19 MW | 5 LPs, 69 s
+2026-11-16 16:59:10    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 16:59:10    reject    12-14: isolates load or generation in a contingency state
+2026-11-16 16:59:10    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 16:59:11    LP K=2: open    49-51 -> overload 31.65 MW | 6 LPs, 69 s
+2026-11-16 16:59:11    LP K=3: open    49-54 -> overload 27.75 MW | 7 LPs, 70 s
+2026-11-16 16:59:13    LP K=4: open    49-54 -> overload 21.58 MW | 8 LPs, 71 s
+2026-11-16 16:59:14    reject    49-69: overload 27.25 MW does not decrease
+2026-11-16 16:59:14    reject    50-57: isolates load or generation in a contingency state
+2026-11-16 16:59:36    reject    68-69: overload 23.73 MW does not decrease
+2026-11-16 16:59:36    reject    49-50: isolates load or generation in a contingency state
+2026-11-16 16:59:39    reject    47-49: overload 24.99 MW does not decrease
+2026-11-16 16:59:39    reject    56-57: isolates load or generation in a contingency state
+2026-11-16 17:00:04    reject    65-68: overload 88.82 MW does not decrease
+2026-11-16 17:00:08    LP K=5: open    69-77 -> overload 19.54 MW | 13 LPs, 127 s
+2026-11-16 17:00:12    reject    81-80: overload 390.62 MW does not decrease
+2026-11-16 17:00:14    reject    68-81: overload 390.62 MW does not decrease
+2026-11-16 17:00:58    reject    64-65: overload 249.73 MW does not decrease
+2026-11-16 17:01:03    reject    64-61: overload 19.65 MW does not decrease
+2026-11-16 17:01:03    reject   98-100: isolates load or generation in a contingency state
+2026-11-16 17:01:03    reject    80-99: isolates load or generation in a contingency state
+2026-11-16 17:01:03    reject   75-118: isolates load or generation in a contingency state
+2026-11-16 17:01:04    reject   99-100: isolates load or generation in a contingency state
+2026-11-16 17:01:05    LP K=6: open    80-96 -> overload 19.52 MW | 18 LPs, 183 s
+2026-11-16 17:01:05    LP K=7: open    92-94 -> overload 19.50 MW | 19 LPs, 184 s
+2026-11-16 17:01:05    reject    96-97: isolates load or generation in a contingency state
+2026-11-16 17:01:05    reject    80-98: isolates load or generation in a contingency state
+2026-11-16 17:01:05    reject    77-78: isolates load or generation in a contingency state
+2026-11-16 17:01:07    LP K=8: open    54-56 -> overload 19.36 MW | 20 LPs, 185 s
+2026-11-16 17:01:08    LP K=9: open    54-55 -> overload 19.10 MW | 21 LPs, 186 s
+2026-11-16 17:01:08    reject    56-58: isolates load or generation in a contingency state
+2026-11-16 17:01:08    reject    51-58: isolates load or generation in a contingency state
+2026-11-16 17:01:09    reject    47-69: overload 27.64 MW does not decrease
+2026-11-16 17:01:09    reject    51-52: isolates load or generation in a contingency state
+2026-11-16 17:01:09    reject    80-97: isolates load or generation in a contingency state
+2026-11-16 17:01:12    LP K=10: open    89-92 -> overload 19.05 MW | 23 LPs, 191 s
+2026-11-16 17:01:13    reject    89-92: overload 19.11 MW does not decrease
+2026-11-16 17:01:14    LP K=11: open    89-90 -> overload 19.03 MW | 25 LPs, 192 s
+2026-11-16 17:01:14    reject    89-90: isolates load or generation in a contingency state
+2026-11-16 17:01:14    reject    55-56: isolates load or generation in a contingency state
+2026-11-16 17:01:14    reject    92-93: isolates load or generation in a contingency state
+2026-11-16 17:01:14    reject    93-94: isolates load or generation in a contingency state
+2026-11-16 17:01:14    reject   92-102: isolates load or generation in a contingency state
+2026-11-16 17:01:14  LP: no candidate left (all criteria >= 0 or tried)
+2026-11-16 17:01:14  LP: 11 openings, 25 LPs, 193 s, NOT feasible, overload 19.03 MW
+2026-11-16 17:01:21  PD: start K=0 infeasible, minimum overload 39.53 MW
+2026-11-16 17:01:21    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 17:01:21    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 17:01:22    reject    23-32: overload 43.43 MW does not decrease
+2026-11-16 17:01:23    reject    12-14: isolates load or generation in a contingency state
+2026-11-16 17:01:26    reject    30-17: infeasible even with overload slacks
+2026-11-16 17:01:26    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 17:02:22    PD K=1: open    69-77 -> overload 37.14 MW | 5 LPs, 68 s
+2026-11-16 17:02:22    PD K=2: open    49-54 -> overload 35.70 MW | 6 LPs, 68 s
+2026-11-16 17:02:23    PD K=3: open    49-54 -> overload 33.43 MW | 7 LPs, 69 s
+2026-11-16 17:02:23    PD K=4: open    49-51 -> overload 28.50 MW | 8 LPs, 69 s
+2026-11-16 17:02:24    PD K=5: open    49-69 -> overload 28.16 MW | 9 LPs, 70 s
+2026-11-16 17:02:39    PD K=6: open    68-69 -> overload 25.62 MW | 10 LPs, 85 s
+2026-11-16 17:02:42    PD K=7: open    65-66 -> overload 15.45 MW | 11 LPs, 88 s
+2026-11-16 17:02:42    reject    50-57: isolates load or generation in a contingency state
+2026-11-16 17:02:47    reject    47-69: overload 28.71 MW does not decrease
+2026-11-16 17:02:48    reject    56-57: isolates load or generation in a contingency state
+2026-11-16 17:02:48    reject    49-50: isolates load or generation in a contingency state
+2026-11-16 17:02:53    reject    47-49: overload 18.34 MW does not decrease
+2026-11-16 17:03:08    reject    64-65: infeasible even with overload slacks
+2026-11-16 17:03:08    reject   75-118: isolates load or generation in a contingency state
+2026-11-16 17:03:08    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 17:04:06    PD K=8: open    92-94 -> overload 15.41 MW | 15 LPs, 172 s
+2026-11-16 17:04:09    PD K=9: open    80-96 -> overload 15.11 MW | 16 LPs, 175 s
+2026-11-16 17:04:09    reject    81-80: isolates load or generation in a contingency state
+2026-11-16 17:04:09    reject    80-97: isolates load or generation in a contingency state
+2026-11-16 17:04:09    reject    96-97: isolates load or generation in a contingency state
+2026-11-16 17:04:12    PD K=10: open    64-61 -> overload 13.19 MW | 17 LPs, 178 s
+2026-11-16 17:04:12    reject    68-81: isolates load or generation in a contingency state
+2026-11-16 17:04:12    reject    80-99: isolates load or generation in a contingency state
+2026-11-16 17:04:12    reject   99-100: isolates load or generation in a contingency state
+2026-11-16 17:04:20    PD K=11: open    55-56 -> overload 13.15 MW | 18 LPs, 186 s
+2026-11-16 17:04:31    PD K=12: open    54-56 -> overload 12.16 MW | 19 LPs, 197 s
+2026-11-16 17:04:31    PD K=13: open    31-32 -> overload 11.79 MW | 20 LPs, 197 s
+2026-11-16 17:04:31    reject   32-114: isolates load or generation in a contingency state
+2026-11-16 17:04:31    reject    56-58: isolates load or generation in a contingency state
+2026-11-16 17:04:31    reject    51-58: isolates load or generation in a contingency state
+2026-11-16 17:04:31    reject    51-52: isolates load or generation in a contingency state
+2026-11-16 17:04:31    reject  101-102: isolates load or generation in a contingency state
+2026-11-16 17:04:31    reject    77-78: isolates load or generation in a contingency state
+2026-11-16 17:04:33    reject    89-92: overload 11.84 MW does not decrease
+2026-11-16 17:04:34    PD K=14: open    89-92 -> overload 11.73 MW | 22 LPs, 200 s
+2026-11-16 17:04:34    reject   92-102: isolates load or generation in a contingency state
+2026-11-16 17:04:34    reject    94-96: overload 12.01 MW does not decrease
+2026-11-16 17:04:34    reject    95-96: isolates load or generation in a contingency state
+2026-11-16 17:04:36    reject    89-90: overload 14.11 MW does not decrease
+2026-11-16 17:04:37    reject    89-90: overload 14.27 MW does not decrease
+2026-11-16 17:04:37    reject    94-95: isolates load or generation in a contingency state
+2026-11-16 17:04:37    reject    34-36: isolates load or generation in a contingency state
+2026-11-16 17:04:37    reject    48-49: isolates load or generation in a contingency state
+2026-11-16 17:04:37  PD: no candidate left (all criteria >= 0 or tried)
+2026-11-16 17:04:37  PD: 14 openings, 25 LPs, 203 s, NOT feasible, overload 11.73 MW
+2026-11-16 17:04:44  PW: start K=0 infeasible, minimum overload 39.53 MW
+2026-11-16 17:04:44    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 17:04:44    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 17:04:45    PW K=1: open    15-17 -> overload 28.16 MW | 3 LPs, 8 s
+2026-11-16 17:04:53    reject    23-25: infeasible even with overload slacks
+2026-11-16 17:05:18    reject    23-32: overload 29.76 MW does not decrease
+2026-11-16 17:05:20    PW K=2: open    69-77 -> overload 25.61 MW | 6 LPs, 42 s
+2026-11-16 17:05:20    reject    19-20: isolates load or generation in a contingency state
+2026-11-16 17:05:22    reject    38-65: infeasible even with overload slacks
+2026-11-16 17:06:20    PW K=3: open    64-65 -> overload 25.33 MW | 8 LPs, 102 s
+2026-11-16 17:06:26    reject    65-66: overload 25.58 MW does not decrease
+2026-11-16 17:06:34    reject    38-37: overload 894.93 MW does not decrease
+2026-11-16 17:07:26    PW K=4: open    68-69 -> overload 24.20 MW | 11 LPs, 169 s
+2026-11-16 17:07:27    reject    49-66: overload 68.32 MW does not decrease
+2026-11-16 17:07:27    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 17:07:29    PW K=5: open    49-54 -> overload 23.49 MW | 13 LPs, 172 s
+2026-11-16 17:07:29    PW K=6: open    49-54 -> overload 22.31 MW | 14 LPs, 172 s
+2026-11-16 17:07:30    reject    49-51: overload 28.31 MW does not decrease
+2026-11-16 17:07:31    reject    49-66: overload 62.77 MW does not decrease
+2026-11-16 17:07:31    reject    20-21: isolates load or generation in a contingency state
+2026-11-16 17:07:31    reject    22-23: isolates load or generation in a contingency state
+2026-11-16 17:07:31    reject    50-57: isolates load or generation in a contingency state
+2026-11-16 17:07:31    reject    81-80: isolates load or generation in a contingency state
+2026-11-16 17:07:38    PW K=7: open    47-49 -> overload 21.07 MW | 17 LPs, 181 s
+2026-11-16 17:07:38    reject    37-39: isolates load or generation in a contingency state
+2026-11-16 17:07:42    reject    30-17: infeasible even with overload slacks
+2026-11-16 17:07:42    reject    68-81: isolates load or generation in a contingency state
+2026-11-16 17:09:04    PW K=8: open    61-62 -> overload 20.87 MW | 19 LPs, 267 s
+2026-11-16 17:09:04    reject    21-22: isolates load or generation in a contingency state
+2026-11-16 17:09:05    reject    49-69: overload 22.92 MW does not decrease
+2026-11-16 17:09:09    reject    34-37: overload 20.91 MW does not decrease
+2026-11-16 17:09:10    reject    37-40: overload 21.17 MW does not decrease
+2026-11-16 17:09:10    reject    49-50: isolates load or generation in a contingency state
+2026-11-16 17:09:10    reject    56-57: isolates load or generation in a contingency state
+2026-11-16 17:09:10    reject    52-53: isolates load or generation in a contingency state
+2026-11-16 17:09:11    PW K=9: open    80-96 -> overload 20.79 MW | 23 LPs, 274 s
+2026-11-16 17:09:12    reject    51-58: isolates load or generation in a contingency state
+2026-11-16 17:09:12    reject    35-37: isolates load or generation in a contingency state
+2026-11-16 17:09:12    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 17:09:12    reject    65-68: isolates load or generation in a contingency state
+2026-11-16 17:09:12    reject     7-12: isolates load or generation in a contingency state
+2026-11-16 17:09:19    PW K=10: open    60-61 -> overload 18.47 MW | 24 LPs, 281 s
+2026-11-16 17:09:19    reject    59-60: isolates load or generation in a contingency state
+2026-11-16 17:09:19    reject    80-99: isolates load or generation in a contingency state
+2026-11-16 17:09:19    reject    80-97: isolates load or generation in a contingency state
+2026-11-16 17:09:19    reject    96-97: isolates load or generation in a contingency state
+2026-11-16 17:09:19    reject    51-52: isolates load or generation in a contingency state
+2026-11-16 17:09:19    reject    77-78: isolates load or generation in a contingency state
+2026-11-16 17:09:19    reject    80-98: isolates load or generation in a contingency state
+2026-11-16 17:09:19    reject   98-100: isolates load or generation in a contingency state
+2026-11-16 17:09:23    reject   94-100: overload 18.69 MW does not decrease
+2026-11-16 17:09:32    PW K=11: open    11-12 -> overload 18.26 MW | 26 LPs, 294 s
+2026-11-16 17:09:32    reject     5-11: overload 26.56 MW does not decrease
+2026-11-16 17:09:32    reject     4-11: isolates load or generation in a contingency state
+2026-11-16 17:09:32    reject    35-36: isolates load or generation in a contingency state
+2026-11-16 17:09:32    reject      4-5: isolates load or generation in a contingency state
+2026-11-16 17:09:32    reject   99-100: isolates load or generation in a contingency state
+2026-11-16 17:09:32    reject    91-92: isolates load or generation in a contingency state
+2026-11-16 17:10:05    PW K=12: open    55-56 -> overload 18.25 MW | 28 LPs, 328 s
+2026-11-16 17:10:06    reject    54-55: isolates load or generation in a contingency state
+2026-11-16 17:10:11    PW K=13: open    54-56 -> overload 18.12 MW | 29 LPs, 333 s
+2026-11-16 17:10:11    reject    90-91: isolates load or generation in a contingency state
+2026-11-16 17:10:11  PW: no candidate left (all criteria >= 0 or tried)
+2026-11-16 17:10:11  PW: 13 openings, 29 LPs, 333 s, NOT feasible, overload 18.12 MW
+2026-11-16 17:10:16  TD: start K=0 infeasible, minimum overload 39.53 MW
+2026-11-16 17:10:20    reject    23-25: infeasible even with overload slacks
+2026-11-16 17:10:28    TD K=1: open    15-17 -> overload 28.16 MW | 4 LPs, 17 s
+2026-11-16 17:10:32    reject    38-37: overload 799.16 MW does not decrease
+2026-11-16 17:10:32    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 17:10:41    reject    23-32: overload 29.76 MW does not decrease
+2026-11-16 17:10:43    TD K=2: open    65-66 -> overload 25.46 MW | 7 LPs, 32 s
+2026-11-16 17:10:44    reject    49-66: overload 41.04 MW does not decrease
+2026-11-16 17:10:55    reject    65-68: overload 67.33 MW does not decrease
+2026-11-16 17:11:22    reject    68-69: overload 25.53 MW does not decrease
+2026-11-16 17:11:31    reject    30-17: infeasible even with overload slacks
+2026-11-16 17:12:13    TD K=3: open    49-51 -> overload 22.34 MW | 12 LPs, 122 s
+2026-11-16 17:12:14    reject    49-66: overload 38.10 MW does not decrease
+2026-11-16 17:12:14    reject    49-50: isolates load or generation in a contingency state
+2026-11-16 17:12:15    TD K=4: open    47-49 -> overload 21.05 MW | 14 LPs, 124 s
+2026-11-16 17:12:16    reject    49-69: overload 30.25 MW does not decrease
+2026-11-16 17:12:23    reject    64-65: overload 30.27 MW does not decrease
+2026-11-16 17:12:36    TD K=5: open    69-77 -> overload 14.98 MW | 17 LPs, 145 s
+2026-11-16 17:12:40    reject    68-81: overload 371.79 MW does not decrease
+2026-11-16 17:12:44    reject    81-80: overload 371.79 MW does not decrease
+2026-11-16 17:12:50    TD K=6: open    49-54 -> overload 13.16 MW | 20 LPs, 159 s
+2026-11-16 17:12:50    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 17:12:50    reject    76-77: isolates load or generation in a contingency state
+2026-11-16 17:12:51    reject    75-77: overload 16.31 MW does not decrease
+2026-11-16 17:12:52    TD K=7: open    77-80 -> overload 12.91 MW | 22 LPs, 161 s
+2026-11-16 17:12:53    TD K=8: open    49-54 -> overload 12.06 MW | 23 LPs, 162 s
+2026-11-16 17:12:54    reject    42-49: overload 146.43 MW does not decrease
+2026-11-16 17:12:55    reject    19-20: isolates load or generation in a contingency state
+2026-11-16 17:12:55    reject    79-80: isolates load or generation in a contingency state
+2026-11-16 17:12:56    reject    77-80: overload 21.48 MW does not decrease
+2026-11-16 17:12:56    reject    78-79: isolates load or generation in a contingency state
+2026-11-16 17:12:56    reject    20-21: isolates load or generation in a contingency state
+2026-11-16 17:12:56    reject     7-12: isolates load or generation in a contingency state
+2026-11-16 17:13:15    TD K=9: open    64-61 -> overload 11.64 MW | 26 LPs, 184 s
+2026-11-16 17:13:16    reject    42-49: overload 144.31 MW does not decrease
+2026-11-16 17:13:24    reject    34-37: overload 12.17 MW does not decrease
+2026-11-16 17:13:24    reject    21-22: isolates load or generation in a contingency state
+2026-11-16 17:13:24    reject    22-23: isolates load or generation in a contingency state
+2026-11-16 17:13:27    TD K=10: open    11-12 -> overload 11.07 MW | 29 LPs, 196 s
+2026-11-16 17:13:27    reject      4-5: isolates load or generation in a contingency state
+2026-11-16 17:13:28    reject     5-11: overload 86.63 MW does not decrease
+2026-11-16 17:13:28    reject     4-11: isolates load or generation in a contingency state
+2026-11-16 17:13:28    reject   76-118: isolates load or generation in a contingency state
+2026-11-16 17:13:59    reject    77-82: overload 31.29 MW does not decrease
+2026-11-16 17:14:01    TD K=11: open   94-100 -> overload 10.99 MW | 32 LPs, 230 s
+2026-11-16 17:14:01    TD K=12: open   92-100 -> overload 10.96 MW | 33 LPs, 230 s
+2026-11-16 17:14:01    reject    77-78: isolates load or generation in a contingency state
+2026-11-16 17:14:01    reject    35-37: isolates load or generation in a contingency state
+2026-11-16 17:14:03    TD K=13: open    82-83 -> overload 10.93 MW | 34 LPs, 232 s
+2026-11-16 17:14:03    reject   75-118: isolates load or generation in a contingency state
+2026-11-16 17:14:03    reject    93-94: isolates load or generation in a contingency state
+2026-11-16 17:14:04    reject    92-94: overload 38.31 MW does not decrease
+2026-11-16 17:14:04    reject    92-93: isolates load or generation in a contingency state
+2026-11-16 17:14:09    TD K=14: open    60-61 -> overload 10.92 MW | 36 LPs, 238 s
+2026-11-16 17:14:10    reject    94-96: overload 49.95 MW does not decrease
+2026-11-16 17:14:10    reject    95-96: isolates load or generation in a contingency state
+2026-11-16 17:14:10    reject    94-95: isolates load or generation in a contingency state
+2026-11-16 17:14:12    reject    54-55: overload 10.92 MW does not decrease
+2026-11-16 17:14:12  TD: no candidate left (all criteria >= 0 or tried)
+2026-11-16 17:14:12  TD: 14 openings, 38 LPs, 241 s, NOT feasible, overload 10.92 MW
+2026-11-16 17:14:12  
+Summary by criterion:
+criterion  openings  overload_K0_mw first_feasible_K  min_overload_mw best_cost  lp_solves  time_s
+      LP0         0           39.53             None         39.53356      None          1     0.0
+       LP        11           39.53             None         19.02720      None         25   192.3
+       PD        14           39.53             None         11.72930      None         22   199.6
+       PW        13           39.53             None         18.11730      None         29   333.3
+       TD        14           39.53             None         10.92170      None         36   238.1

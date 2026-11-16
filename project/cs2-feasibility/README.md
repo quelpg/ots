@@ -1,45 +1,73 @@
 # CS2 – Recovery of N-1 feasibility above λ_max
 
 **Question:** with the full contingency list (197 states), the original topology is N-1 secure
-only up to λ_max = 0.850. At a load level above it, how many open lines (K) does switching need
-to make N-1 feasible again, and at what cost?
+only up to λ_max = 0.850. Above it, can switching make N-1 feasible again, with how many open
+lines, and up to which load?
 
-Above λ_max no single contingency is infeasible alone: the minimal conflicting set at λ = 0.852 is
-the base case + line 8-5 + line 26-30 + the bus-10 generator + the bus-66 generator (removing any
-one of them makes it feasible). The limit comes from the network, not from generation capacity
-(even without the largest unit, 5,333 MW remain), so switching can help.
+Why this range (`../reference/README.md`, `load_limits.py`): between λ = 0.850 and 0.992 unlimited
+transmission capacity would restore N-1 (the infeasibility is caused by transmission limits);
+above 0.992 not even that helps. The minimum overload at λ = 0.86 is 12.6 MW (2 states), at 0.88
+39.5 MW, always worst on line 23-25 with 26-30 out.
 
-## Method (for each λ chosen above 0.850, e.g. 0.90, 0.95, 1.0)
+## Method
 
-1. **Relaxed LP:** SC-DCOPF with slacks on the flow limits, minimizing the total violation. Its
-   duals feed the heuristic criteria (the slack weights only guide the heuristic; they do not
-   affect the final result).
-2. **Heuristic:** open the best candidate, re-solve, keep it if the violation decreases; repeat
-   until the violation is zero. The topology found (K_h open lines) is proven feasible by the LP
-   without slacks.
-3. **MILP** minimizing the number of open lines subject to the full N-1, with warm start from the
-   heuristic: may find a smaller K and gives the lower bound. Result: K_min(λ) between the lower
-   bound and K_h. At λ = 1, K ≤ 3 is already proven infeasible (results below).
-4. **Cost** at that K: cost MILP with warm start.
+1. **Heuristic, two phases** (`../heuristics/sequential.py`, same command as CS1): if the original
+   topology is infeasible, it starts with the **violation phase** – LP with overload slacks on the
+   flow limits (minimum total overload, equal weights); the criteria use its duals; an opening is
+   kept if the overload decreases. When the overload reaches zero, the LP **without slacks** proves
+   N-1 feasibility and the **cost phase** (as in CS1) continues up to the maximum K. Openings that
+   isolate load or generation in any contingency are rejected.
+2. **Maximum load of each feasible topology** (`topology_lambda_max.py`): max-λ LP with the topology
+   fixed and every limit.
+3. **MILP** (to run): minimum number of open lines (K_min) with warm start from the first feasible
+   heuristic topology; then the cost K sweep from K_min (`../cs1-cost/sweep_k.py` with this λ and
+   `--out-root cs2-feasibility/results`). Where the heuristic does not reach feasibility (λ = 0.88),
+   a MILP minimizing the overload with K limited would say whether any topology does.
 
-Output for the thesis: K_min per λ, and the cost of N-1 secure operation at each λ.
+## Commands (from `project/`)
 
-Auxiliary tool: the max-λ LP (λ as a variable) gives, in one LP, the highest load a fixed
-topology supports under N-1.
+```
+python heuristics/sequential.py --load-factor 0.86 --max-open 20 --max-lp 100 --out-root cs2-feasibility/results
+python heuristics/sequential.py --load-factor 0.88 --max-open 20 --max-lp 100 --out-root cs2-feasibility/results
+python cs2-feasibility/topology_lambda_max.py --load-factor 0.86
+```
 
-## Results (old code)
+## Results (2026-11-16)
 
-`results/matpower/redispatch_only/screening/`: core screening at λ = 1 (MILP on a small core of
-states + IIS + constraint generation):
+`results/matpower/redispatch_only/contingencies/lambda<λ>/heuristic/` (`path_<criterion>.csv`,
+`summary_criteria.csv`, feasible topologies in `<criterion>/K<n>/`) and `topology_lambda_max.csv`.
 
-- `summary_K1-10.csv`, `summary_K5-10.csv`, `K*_it1.log`, `first_sweep/`: cost-mode runs on a
-  4-state core (base, 8-5 out, 38-65 out, bus-10 generator out). K = 1, 2, 3 are infeasible on
-  the core, which is a relaxation: this is the **proof that no topology with K ≤ 3 is feasible
-  at λ = 1**. K = 4–7 hit the time limit without a solution (unknown).
-- `summary_min_switching.csv`, `minsw_it1.log`, `progress_min_switching.log`: minimum-switching
-  run of 2026-11-13 (4..10 open lines, 1 h, no warm start): undecided, no topology found.
+**λ = 0.86** (overload 12.6 MW at K = 0): N-1 recovered.
 
-Produced by `old/pre-reorg-2026-11/ots-sc-dcopf/full-ct-feasibility/` (`core_screening.py`,
-`ots-full-ct-feasibility.ipynb`). It does not run from `old/`. Interpretation: `../RESULTS_NOTES.md`.
+| Criterion | Feasible from | Cost at K = 10 ($/h) |
+|---|---|---|
+| LP (Fuller) | K = 5 | 94,673 |
+| PW | K = 5 | 92,424 |
+| TD | K = 6 | **90,470** |
+| PD | K = 12 | – |
 
-Commands for the new scripts will be listed here when they are ready.
+At λ = 0.86 with 10 open lines (TD) the cost is lower than without switching at λ = 0.85 (91,818).
+
+**λ = 0.88** (overload 39.5 MW): no criterion reaches feasibility in 20 openings; minimum overload
+10.9 MW (TD), 11.7 (PD), 18.1 (PW), 19.0 (LP).
+
+**Maximum N-1 load with switching** (topologies found at λ = 0.86):
+
+| Open lines | Best topology | λ_max | Load (MW) |
+|---|---|---|---|
+| 0 | original | 0.850 | 3,606 |
+| 5 | PW | 0.864 | 3,665 |
+| 8 | TD | 0.869 | 3,684 |
+| 10 | TD | **0.875** | **3,713** |
+| 11–17 | TD | ~0.875 | (saturates) |
+
+With 10 open lines (15-17, 34-37, 47-49, 49-51, 49-54, 65-66, 49-69, 68-69, 69-77, 77-80) switching
+extends the maximum N-1 load by 107 MW (+3%). These topologies were chosen to lower the cost at
+λ = 0.86, not to maximize the load, so the true limit with switching may be a little higher.
+
+## Old results (λ = 1)
+
+`results/matpower/redispatch_only/screening/`: core screening at λ = 1 (MILP on a 4-state core +
+IIS + constraint generation). K = 1, 2, 3 are infeasible on the core (a relaxation): **no topology
+with K ≤ 3 is feasible at λ = 1**. K = 4–7: time limit without a solution. Minimum-switching run of
+2026-11-13: undecided. Produced by `old/pre-reorg-2026-11/ots-sc-dcopf/full-ct-feasibility/`.

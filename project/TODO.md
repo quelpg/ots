@@ -95,12 +95,15 @@ abaixo se referem a ele.
       prêmio (LP e PD 40% / 15% / 6%); `cs1-cost/sweep_k.py` testado (warm start da heurística)
 - [ ] CS1: MILP com warm start (K = 1..8 / 1..10 / 1..10, 30 min por K), no PowerShell
 - [ ] CS1: figura custo × K (MILP, heurística, % do prêmio)
-- [ ] CS2 (recuperar a viabilidade, λ > λ_max; ex.: 0,90 / 0,95 / 1,0): LP relaxado (folgas nos
-      limites de fluxo, min violação) → heurística com os duais desse LP até a violação zerar (K_h,
-      viabilidade provada pelo LP sem folgas) → MILP de chaveamento mínimo com warm start (K menor e
-      limite inferior) → MILP de custo nesse K. Resultado: K_min por λ. Em λ = 1, K ≤ 3 já é inviável
-- [ ] Ferramenta auxiliar: LP de max λ (carga máxima que uma topologia fixa aguenta sob N-1)
-- [ ] CS3 (renováveis): λ ≈ 0,80, concentrado × distribuído
+- [x] CS2, heurística em duas fases (violação → prova pelo LP sem folgas → custo): em λ = 0,86 o N-1
+      volta com 5 linhas (LP, PW) ou 6 (TD); em 0,88 nenhum critério zera (mín. 10,9 MW, TD).
+      λ_max com OTS: 0,875 com 10 linhas (TD), contra 0,850 sem OTS (+107 MW)
+- [ ] CS2: MILP do K_min em 0,86 (warm start: topologias com 5 linhas) e varredura de custo a partir dele
+- [ ] CS2: MILP de sobrecarga mínima com K limitado em 0,88 (existe topologia viável?)
+- [x] Ferramenta auxiliar: LP de max λ por topologia (`cs2-feasibility/topology_lambda_max.py`)
+- [ ] CS3 (renováveis): λ = 0,80, carga uniforme; concentrado nas barras 104, 106, 107, 110
+      (ranking de distância elétrica, `cs3-renewables/electrical_distance.py`) × distribuído
+      (barras do Ruiz 2012); penetração 10/20/30% da carga; implementar as renováveis do .tex
 - A varredura antiga (λ = 1, lista reduzida) vira só validação da heurística
   (`heuristics/benchmark/`). O "CS1b" (aumentar a carga com a lista reduzida) foi descartado.
 
@@ -121,7 +124,7 @@ abaixo se referem a ele.
 - [ ] Conferir as topologias de K = 6 e 7 no pandapower (passo V)
 - [ ] Revisar a adaptação de PD/PW ao N-1 (normalização por |f₀|, sinal da eq. 42)
 - [ ] Usar as topologias da heurística como warm start do MILP (`run_ots.py --warm-start-dir`)
-- [ ] Modo de violação (LP com folgas) para o CS2
+- [x] Modo de violação (LP com folgas) para o CS2: fase de violação + fase de custo no `sequential.py`
 
 ### Análise A+ - qualidade das soluções (`ots-sc-dcopf/solution-quality/ots-solution-quality.ipynb`)
 

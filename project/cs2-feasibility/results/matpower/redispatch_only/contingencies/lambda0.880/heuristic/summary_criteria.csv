@@ -1,0 +1,6 @@
+criterion,openings,overload_K0_mw,first_feasible_K,min_overload_mw,best_cost,lp_solves,time_s
+LP0,0,39.53,,39.533560390789276,,1,0.0
+LP,11,39.53,,19.0272,,25,192.3
+PD,14,39.53,,11.7293,,22,199.6
+PW,13,39.53,,18.1173,,29,333.3
+TD,14,39.53,,10.9217,,36,238.1
