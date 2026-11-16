@@ -65,6 +65,29 @@ With 10 open lines (15-17, 34-37, 47-49, 49-51, 49-54, 65-66, 49-69, 68-69, 69-7
 extends the maximum N-1 load by 107 MW (+3%). These topologies were chosen to lower the cost at
 λ = 0.86, not to maximize the load, so the true limit with switching may be a little higher.
 
+## Maximum load per K: heuristic in load mode (2026-11-16)
+
+`python heuristics/sequential.py --mode load --max-open 10 --out-root cs2-feasibility/results` –
+max-λ LP at each step (written as min −λ, so the criteria keep their sign convention); an opening
+is kept if λ_max increases. Results in `results/matpower/redispatch_only/contingencies/max_load/heuristic/`.
+
+| K | Best criterion | λ_max | Load (MW) |
+|---|---|---|---|
+| 0 | – | 0.8501 | 3,606 |
+| 1 | LP | 0.8539 | 3,622 |
+| 2 | LP | 0.8571 | 3,636 |
+| 4 | PW | 0.8590 | 3,644 |
+| 5 | PW | 0.8640 | 3,665 |
+| 8 | TD | 0.8692 | 3,687 |
+| 9 | TD | 0.8754 | 3,713 |
+| 10 | TD | **0.8765** | **3,718** |
+
+The load-mode criteria reach the same or slightly higher λ_max than the topologies chosen for cost
+(0.8753 at K = 10), and give the whole curve from K = 1 (the cost/violation runs only had feasible
+topologies from K = 5 at λ = 0.86). Next: MILP max λ for K = 1..10 with warm start from these
+topologies (`python model/run_ots.py --objective max_load --K <k> --warm-start-dir
+cs2-feasibility/results/matpower/redispatch_only/contingencies/max_load/heuristic/TD ...`).
+
 ## Old results (λ = 1)
 
 `results/matpower/redispatch_only/screening/`: core screening at λ = 1 (MILP on a 4-state core +

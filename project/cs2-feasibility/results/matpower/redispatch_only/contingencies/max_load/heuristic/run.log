@@ -1,0 +1,184 @@
+2026-11-16 18:50:10  sequential.py --mode load --max-open 10 --max-lp 90 --out-root cs2-feasibility/results
+2026-11-16 18:50:10  output -> cs2-feasibility/results\matpower\redispatch_only\contingencies\max_load\heuristic
+2026-11-16 18:50:11  source = matpower | base_mva = 100 MVA | slack bus = 69
+2026-11-16 18:50:11  |N| = 118 buses | |G| = 19 generators | |L| = 186 branches (9 radial)
+2026-11-16 18:50:11  nominal load = 4,242.0 MW | conventional Pmax = 6,515.0 MW
+2026-11-16 18:50:11  formulation = redispatch_only | contingencies = all (contingencies) | excluded: none
+2026-11-16 18:50:11  |C_T| = 177 branches | |C_G| = 19 generators | |C| = 197 states (1 base + 196 contingencies)
+2026-11-16 18:50:12  model: 173,167 rows, 100,460 columns (0 binary), 616,208 nonzeros | built in 1.1 s
+2026-11-16 18:50:12  theta in [-0.6, 0.6] rad | M_l in [2.9, 296.3] pu | F^em = 1.15 F^max
+2026-11-16 18:50:13  K=0 lambda_max = 0.85013 (3,606.2 MW)
+2026-11-16 18:50:13  LP0: start K=0 lambda_max = 0.85013 (3,606.2 MW)
+2026-11-16 18:50:13  LP0: no candidate left (all criteria >= 0 or tried)
+2026-11-16 18:50:13  LP0: 0 openings, 1 LPs, 0 s, final lambda_max 0.85013
+2026-11-16 18:50:14  LP: start K=0 lambda_max = 0.85013 (3,606.2 MW)
+2026-11-16 18:50:24    reject    30-17: lambda_max 0.69504 does not increase
+2026-11-16 18:50:27    reject    23-32: lambda_max 0.83962 does not increase
+2026-11-16 18:50:33    LP K=1: open    65-66 -> lambda_max 0.85394 (3,622.4 MW) | 4 LPs, 20 s
+2026-11-16 18:50:33    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 18:50:33    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 18:50:33    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 18:50:33    reject    12-14: isolates load or generation in a contingency state
+2026-11-16 18:50:33    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 18:50:34    LP K=2: open    49-51 -> lambda_max 0.85711 (3,635.9 MW) | 5 LPs, 20 s
+2026-11-16 18:50:34    LP K=3: open    49-54 -> lambda_max 0.85831 (3,640.9 MW) | 6 LPs, 21 s
+2026-11-16 18:50:36    reject    40-42: lambda_max 0.85135 does not increase
+2026-11-16 18:50:36    reject    41-42: isolates load or generation in a contingency state
+2026-11-16 18:50:37    reject    37-40: lambda_max 0.84734 does not increase
+2026-11-16 18:50:39    reject    49-69: lambda_max 0.85765 does not increase
+2026-11-16 18:50:40    LP K=4: open    49-54 -> lambda_max 0.85855 (3,642.0 MW) | 10 LPs, 27 s
+2026-11-16 18:50:41    LP K=5: open    31-32 -> lambda_max 0.85977 (3,647.1 MW) | 11 LPs, 28 s
+2026-11-16 18:51:07    reject    68-69: lambda_max 0.85904 does not increase
+2026-11-16 18:51:57    reject    65-68: lambda_max 0.81786 does not increase
+2026-11-16 18:52:28    reject    81-80: lambda_max 0.85338 does not increase
+2026-11-16 18:52:42    LP K=6: open    69-77 -> lambda_max 0.86047 (3,650.1 MW) | 15 LPs, 149 s
+2026-11-16 18:52:54    reject    68-81: lambda_max 0.77637 does not increase
+2026-11-16 18:54:00    reject    64-65: lambda_max 0.82307 does not increase
+2026-11-16 18:54:00    reject   98-100: isolates load or generation in a contingency state
+2026-11-16 18:54:00    reject   32-114: isolates load or generation in a contingency state
+2026-11-16 18:54:00    reject    80-99: isolates load or generation in a contingency state
+2026-11-16 18:54:55    LP K=7: open    64-61 -> lambda_max 0.86089 (3,651.9 MW) | 18 LPs, 281 s
+2026-11-16 18:55:23    reject    63-59: lambda_max 0.77383 does not increase
+2026-11-16 18:55:39    reject    63-64: lambda_max 0.77383 does not increase
+2026-11-16 18:55:39    reject   99-100: isolates load or generation in a contingency state
+2026-11-16 18:55:39    reject     4-11: isolates load or generation in a contingency state
+2026-11-16 18:56:00    LP K=8: open     5-11 -> lambda_max 0.86101 (3,652.4 MW) | 21 LPs, 347 s
+2026-11-16 18:56:08    LP K=9: open    89-92 -> lambda_max 0.86114 (3,652.9 MW) | 22 LPs, 354 s
+2026-11-16 18:56:09    reject    89-92: lambda_max 0.86086 does not increase
+2026-11-16 18:56:09    reject    80-98: isolates load or generation in a contingency state
+2026-11-16 18:56:14    LP K=10: open    89-90 -> lambda_max 0.86121 (3,653.2 MW) | 24 LPs, 360 s
+2026-11-16 18:56:14  LP: 10 openings, 24 LPs, 360 s, final lambda_max 0.86121
+2026-11-16 18:57:11  PD: start K=0 lambda_max = 0.85013 (3,606.2 MW)
+2026-11-16 18:57:11    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 18:57:11    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 18:57:11    reject    19-20: isolates load or generation in a contingency state
+2026-11-16 18:57:13    reject    23-32: lambda_max 0.83962 does not increase
+2026-11-16 18:57:13    reject    12-14: isolates load or generation in a contingency state
+2026-11-16 18:57:39    reject    30-17: lambda_max 0.69504 does not increase
+2026-11-16 18:57:39    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 18:57:41    PD K=1: open    69-77 -> lambda_max 0.85141 (3,611.7 MW) | 4 LPs, 88 s
+2026-11-16 18:57:41    reject    40-41: isolates load or generation in a contingency state
+2026-11-16 18:57:56    PD K=2: open    64-65 -> lambda_max 0.85184 (3,613.5 MW) | 5 LPs, 102 s
+2026-11-16 18:58:12    PD K=3: open    65-66 -> lambda_max 0.85593 (3,630.8 MW) | 6 LPs, 118 s
+2026-11-16 18:58:15    PD K=4: open    31-32 -> lambda_max 0.85702 (3,635.5 MW) | 7 LPs, 121 s
+2026-11-16 18:58:16    reject    49-69: lambda_max 0.82985 does not increase
+2026-11-16 18:58:48    reject    68-69: lambda_max 0.83753 does not increase
+2026-11-16 18:59:05    PD K=5: open    49-54 -> lambda_max 0.85772 (3,638.5 MW) | 10 LPs, 172 s
+2026-11-16 18:59:06    PD K=6: open    49-54 -> lambda_max 0.85888 (3,643.3 MW) | 11 LPs, 172 s
+2026-11-16 18:59:07    reject    49-51: lambda_max 0.82307 does not increase
+2026-11-16 18:59:12    reject    47-49: lambda_max 0.85744 does not increase
+2026-11-16 18:59:12    reject    50-57: isolates load or generation in a contingency state
+2026-11-16 18:59:15    PD K=7: open    92-94 -> lambda_max 0.85890 (3,643.5 MW) | 14 LPs, 182 s
+2026-11-16 18:59:16    PD K=8: open    80-96 -> lambda_max 0.85926 (3,645.0 MW) | 15 LPs, 183 s
+2026-11-16 18:59:16    reject    37-39: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject    37-40: lambda_max 0.85199 does not increase
+2026-11-16 18:59:17    reject    49-50: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject    56-57: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject    52-53: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject    80-99: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject   98-100: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject    51-58: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject    96-97: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject   32-114: isolates load or generation in a contingency state
+2026-11-16 18:59:17    reject    51-52: isolates load or generation in a contingency state
+2026-11-16 18:59:21    reject    75-77: lambda_max 0.85556 does not increase
+2026-11-16 18:59:21    reject    80-98: isolates load or generation in a contingency state
+2026-11-16 18:59:22    reject    80-97: isolates load or generation in a contingency state
+2026-11-16 18:59:22    reject    27-28: isolates load or generation in a contingency state
+2026-11-16 18:59:22    reject   99-100: isolates load or generation in a contingency state
+2026-11-16 18:59:22    reject    34-36: isolates load or generation in a contingency state
+2026-11-16 18:59:22    reject    65-68: isolates load or generation in a contingency state
+2026-11-16 18:59:22    reject    76-77: isolates load or generation in a contingency state
+2026-11-16 18:59:22    reject  101-102: isolates load or generation in a contingency state
+2026-11-16 18:59:24    PD K=9: open    89-92 -> lambda_max 0.85956 (3,646.3 MW) | 18 LPs, 191 s
+2026-11-16 18:59:25    reject    89-92: lambda_max 0.85806 does not increase
+2026-11-16 18:59:25    reject    91-92: isolates load or generation in a contingency state
+2026-11-16 18:59:25    reject   76-118: isolates load or generation in a contingency state
+2026-11-16 18:59:41    PD K=10: open    55-56 -> lambda_max 0.85962 (3,646.5 MW) | 20 LPs, 208 s
+2026-11-16 18:59:41  PD: 10 openings, 20 LPs, 208 s, final lambda_max 0.85962
+2026-11-16 19:00:25  PW: start K=0 lambda_max = 0.85013 (3,606.2 MW)
+2026-11-16 19:00:25    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 19:00:25    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 19:00:25    reject    19-20: isolates load or generation in a contingency state
+2026-11-16 19:00:35    reject    23-25: lambda_max 0.75720 does not increase
+2026-11-16 19:00:37    PW K=1: open    15-17 -> lambda_max 0.85231 (3,615.5 MW) | 3 LPs, 55 s
+2026-11-16 19:00:52    reject    38-65: lambda_max 0.62228 does not increase
+2026-11-16 19:00:55    reject    23-32: lambda_max 0.84526 does not increase
+2026-11-16 19:01:02    PW K=2: open    69-77 -> lambda_max 0.85478 (3,626.0 MW) | 6 LPs, 81 s
+2026-11-16 19:01:17    reject    38-37: lambda_max 0.62890 does not increase
+2026-11-16 19:01:53    PW K=3: open    64-65 -> lambda_max 0.85574 (3,630.0 MW) | 8 LPs, 132 s
+2026-11-16 19:02:16    PW K=4: open    65-66 -> lambda_max 0.85898 (3,643.8 MW) | 9 LPs, 155 s
+2026-11-16 19:02:18    reject    49-69: lambda_max 0.82992 does not increase
+2026-11-16 19:02:47    reject    68-69: lambda_max 0.84494 does not increase
+2026-11-16 19:02:55    reject    49-66: lambda_max 0.84832 does not increase
+2026-11-16 19:02:58    PW K=5: open    47-49 -> lambda_max 0.86397 (3,664.9 MW) | 13 LPs, 197 s
+2026-11-16 19:03:00    PW K=6: open    77-80 -> lambda_max 0.86545 (3,671.2 MW) | 14 LPs, 199 s
+2026-11-16 19:03:01    reject    49-66: lambda_max 0.85261 does not increase
+2026-11-16 19:03:01    reject    46-47: isolates load or generation in a contingency state
+2026-11-16 19:03:01    reject    46-48: isolates load or generation in a contingency state
+2026-11-16 19:03:07    reject    75-77: lambda_max 0.85766 does not increase
+2026-11-16 19:03:07    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 19:03:09    PW K=7: open    49-54 -> lambda_max 0.86602 (3,673.7 MW) | 17 LPs, 208 s
+2026-11-16 19:03:10    PW K=8: open    49-54 -> lambda_max 0.86695 (3,677.6 MW) | 18 LPs, 209 s
+2026-11-16 19:03:13    reject    42-49: lambda_max 0.76802 does not increase
+2026-11-16 19:03:13    reject    76-77: isolates load or generation in a contingency state
+2026-11-16 19:03:13    reject   76-118: isolates load or generation in a contingency state
+2026-11-16 19:03:13    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 19:03:13    reject     7-12: isolates load or generation in a contingency state
+2026-11-16 19:03:16    reject    77-80: lambda_max 0.85562 does not increase
+2026-11-16 19:03:16    reject    65-68: isolates load or generation in a contingency state
+2026-11-16 19:03:19    reject    77-82: lambda_max 0.84685 does not increase
+2026-11-16 19:03:19    reject    79-80: isolates load or generation in a contingency state
+2026-11-16 19:03:23    PW K=9: open    11-12 -> lambda_max 0.86770 (3,680.8 MW) | 22 LPs, 222 s
+2026-11-16 19:03:25    reject    42-49: lambda_max 0.76861 does not increase
+2026-11-16 19:03:28    reject     5-11: lambda_max 0.83208 does not increase
+2026-11-16 19:03:28    reject     4-11: isolates load or generation in a contingency state
+2026-11-16 19:03:28    reject    20-21: isolates load or generation in a contingency state
+2026-11-16 19:03:55    reject    82-96: lambda_max 0.86740 does not increase
+2026-11-16 19:03:55    reject      4-5: isolates load or generation in a contingency state
+2026-11-16 19:03:55    reject    78-79: isolates load or generation in a contingency state
+2026-11-16 19:04:02    PW K=10: open   94-100 -> lambda_max 0.86784 (3,681.4 MW) | 26 LPs, 261 s
+2026-11-16 19:04:02  PW: 10 openings, 26 LPs, 261 s, final lambda_max 0.86784
+2026-11-16 19:04:17  TD: start K=0 lambda_max = 0.85013 (3,606.2 MW)
+2026-11-16 19:04:34    reject    23-25: lambda_max 0.75720 does not increase
+2026-11-16 19:04:56    reject    38-65: lambda_max 0.62519 does not increase
+2026-11-16 19:05:06    TD K=1: open    15-17 -> lambda_max 0.85231 (3,615.5 MW) | 4 LPs, 64 s
+2026-11-16 19:05:21    reject    38-37: lambda_max 0.62886 does not increase
+2026-11-16 19:05:21    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 19:06:03    TD K=2: open    65-66 -> lambda_max 0.85641 (3,632.9 MW) | 6 LPs, 120 s
+2026-11-16 19:06:05    reject    49-66: lambda_max 0.84341 does not increase
+2026-11-16 19:06:08    reject    23-32: lambda_max 0.84638 does not increase
+2026-11-16 19:06:32    reject    65-68: lambda_max 0.82724 does not increase
+2026-11-16 19:07:18    TD K=3: open    68-69 -> lambda_max 0.85665 (3,633.9 MW) | 10 LPs, 195 s
+2026-11-16 19:07:38    reject    64-65: lambda_max 0.83884 does not increase
+2026-11-16 19:08:16    TD K=4: open    77-80 -> lambda_max 0.85719 (3,636.2 MW) | 12 LPs, 254 s
+2026-11-16 19:08:17    reject    49-66: lambda_max 0.84258 does not increase
+2026-11-16 19:08:26    reject    77-80: lambda_max 0.85314 does not increase
+2026-11-16 19:08:45    TD K=5: open    69-77 -> lambda_max 0.85914 (3,644.5 MW) | 15 LPs, 282 s
+2026-11-16 19:08:45    reject    81-80: isolates load or generation in a contingency state
+2026-11-16 19:08:45    reject    68-81: isolates load or generation in a contingency state
+2026-11-16 19:09:09    reject    30-17: lambda_max 0.73768 does not increase
+2026-11-16 19:09:12    TD K=6: open    49-51 -> lambda_max 0.86241 (3,658.4 MW) | 17 LPs, 309 s
+2026-11-16 19:09:12    reject    49-50: isolates load or generation in a contingency state
+2026-11-16 19:09:16    TD K=7: open    47-49 -> lambda_max 0.86593 (3,673.3 MW) | 18 LPs, 314 s
+2026-11-16 19:09:16    TD K=8: open    49-54 -> lambda_max 0.86923 (3,687.3 MW) | 19 LPs, 314 s
+2026-11-16 19:09:17    TD K=9: open    49-54 -> lambda_max 0.87540 (3,713.4 MW) | 20 LPs, 314 s
+2026-11-16 19:09:17    reject    50-57: isolates load or generation in a contingency state
+2026-11-16 19:09:17    reject    56-57: isolates load or generation in a contingency state
+2026-11-16 19:09:18    reject    49-69: lambda_max 0.86970 does not increase
+2026-11-16 19:09:18    reject    46-47: isolates load or generation in a contingency state
+2026-11-16 19:09:18    reject    22-23: isolates load or generation in a contingency state
+2026-11-16 19:09:18    reject    21-22: isolates load or generation in a contingency state
+2026-11-16 19:09:18    reject    48-49: isolates load or generation in a contingency state
+2026-11-16 19:09:18    reject    20-21: isolates load or generation in a contingency state
+2026-11-16 19:09:18    reject    19-20: isolates load or generation in a contingency state
+2026-11-16 19:10:13    TD K=10: open    34-37 -> lambda_max 0.87651 (3,718.1 MW) | 22 LPs, 371 s
+2026-11-16 19:10:13  TD: 10 openings, 22 LPs, 371 s, final lambda_max 0.87651
+2026-11-16 19:10:14  
+Summary by criterion:
+criterion  openings  lambda_max_K0  best_lambda_max  K_of_best  lp_solves  time_s
+      LP0         0        0.85013          0.85013          0          1     0.0
+       LP        10        0.85013          0.86121         10         24   360.2
+       PD        10        0.85013          0.85962         10         20   207.6
+       PW        10        0.85013          0.86784         10         26   260.9
+       TD        10        0.85013          0.87651         10         22   371.1

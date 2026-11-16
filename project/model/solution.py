@@ -70,7 +70,7 @@ def read_solution(model, duals=False):
     cost = float(model.cost_vec @ model.P.X[:, 0])
     sol = Solution(
         status=model.status_name, objective=model.objective, cost=cost,
-        bound=float(m.ObjBound) if is_mip else float(m.ObjVal),
+        bound=(-1 if model.objective == "max_load" else 1) * float(m.ObjBound if is_mip else m.ObjVal),
         gap=float(m.MIPGap) if is_mip else 0.0, runtime=float(m.Runtime),
         load_factor=float(model.lam.X[0]), K=getattr(model, "K", None),
         p0=model.P.X[:, 0].copy(), f0=model.F.X[:, 0].copy(), theta0=model.T.X[:, 0].copy(),
@@ -189,7 +189,7 @@ def report(log, model, sol):
     log.info(f"  Base-case cost  : ${sol.cost:,.2f} /h")
     if model.m.IsMIP:
         unit = {"cost": "$/h", "min_switching": "open lines (lower bound on K_min)",
-                "max_load": "lambda"}[sol.objective]
+                "max_load": "lambda (upper bound on lambda_max)"}[sol.objective]
         log.info(f"  Best bound      : {sol.bound:,.2f} {unit}")
     log.info(f"  Load factor     : {sol.load_factor:.4f} ({load_mw:,.2f} MW)")
     log.info(f"  Total generation: {gen_mw:,.2f} MW (base case)")
@@ -259,10 +259,16 @@ def saved_topology(result_dir):
     return ll.loc[ll["z"] == 0, "branch_id"].astype(int).tolist(), float(summ["base_cost_usd_per_h"])
 
 
+def saved_load_factor(result_dir):
+    summ = pd.read_csv(os.path.join(result_dir, "summary.csv")).set_index("metric")["value"]
+    return float(summ["load_factor"]) if "load_factor" in summ else 1.0
+
+
 def cheapest_saved(dirs, max_k, key="cost"):
     """Warm start (notebook section 6.1): saved result with K' <= max_k in <dir>/<sub>/ (any
     subfolder with summary.csv + line_loading.csv). key='cost': the cheapest;
-    key='n_open': the one with fewest open lines (for the minimum-switching MILP)."""
+    key='n_open': the one with fewest open lines (minimum-switching MILP);
+    key='lambda': the one with the highest load factor (max-load MILP, CS2)."""
     best = None
     for d in dirs:
         if not os.path.isdir(d):
@@ -271,7 +277,8 @@ def cheapest_saved(dirs, max_k, key="cost"):
             rd = os.path.join(d, sub)
             if os.path.exists(os.path.join(rd, "summary.csv")) and os.path.exists(os.path.join(rd, "line_loading.csv")):
                 ids, cost = saved_topology(rd)
-                rank = (cost,) if key == "cost" else (len(ids), cost)
+                rank = {"cost": (cost,), "n_open": (len(ids), cost),
+                        "lambda": (-saved_load_factor(rd), len(ids))}[key]
                 if len(ids) <= max_k and (best is None or rank < best[3]):
                     best = (rd, ids, cost, rank)
     return None if best is None else best[:3]

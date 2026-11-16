@@ -146,8 +146,10 @@ class OTSModel:
         if kind == "cost":
             self.m.setObjective(self.cost_vec @ self.P[:, 0], GRB.MINIMIZE)
         elif kind == "max_load":
+            # written as min -lambda (same optimum): the duals keep the sign convention of the
+            # cost LP (pi = d objective / d load > 0), so the heuristic criteria apply unchanged
             self.lam.lb, self.lam.ub = 0.0, GRB.INFINITY
-            self.m.setObjective(self.lam.sum(), GRB.MAXIMIZE)
+            self.m.setObjective(-self.lam.sum(), GRB.MINIMIZE)
         elif kind == "min_switching":
             self.m.setObjective(len(self.LS) - self.z[self.LS].sum(), GRB.MINIMIZE)
         elif kind == "min_violation":

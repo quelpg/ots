@@ -279,6 +279,89 @@ def run_sequential(model, criterion, max_open, max_lp, log, export_root=None, mi
     return steps
 
 
+def run_load_mode(model, criterion, max_open, max_lp, log, export_root=None, allow_islands=False,
+                  tol=1e-6):
+    """Ruiz Fig. 1 with the max-load LP (CS2): the criteria use the duals of max lambda (written
+    as min -lambda, so the sign convention is the one of the cost LP); an opening is kept if
+    lambda_max increases. Returns the accepted steps (one per K) with lambda_max."""
+    s = model.sys
+    t0 = time.time()
+    model.set_objective("max_load")
+    open_ids, n_lp, steps, banned = [], 0, [], set()
+    sol = solve_topology(model, open_ids, duals=True)
+    n_lp += 1
+    if sol is None:
+        log.info(f"{criterion}: max-load LP infeasible on the original topology")
+        return []
+    lam = sol.load_factor
+    log.info(f"{criterion}: start K=0 lambda_max = {lam:.5f} ({lam * s.pd_nom.sum() * s.base_mva:,.1f} MW)")
+    while len(open_ids) < max_open and n_lp < max_lp:
+        cr = criteria_table(model, sol)
+        cr = cr[~cr.branch_id.isin(banned) & (cr[criterion] < -1e-9)].sort_values(criterion)
+        if cr.empty:
+            log.info(f"{criterion}: no candidate left (all criteria >= 0 or tried)")
+            break
+        k = int(cr.iloc[0].branch_id)
+        trial = open_ids + [k]
+        z = np.ones(s.n_branch)
+        z[trial] = 0.0
+        banned.add(k)
+        if isolated_buses(s, z):
+            log.info(f"  reject {s.label[k]:>8}: islands the base topology")
+            continue
+        if not allow_islands and forbidden_islands(s, model.states, z):
+            log.info(f"  reject {s.label[k]:>8}: isolates load or generation in a contingency state")
+            continue
+        new = solve_topology(model, trial, duals=True)
+        n_lp += 1
+        if new is None:
+            log.info(f"  reject {s.label[k]:>8}: max-load LP infeasible")
+            continue
+        if new.load_factor <= lam + tol:
+            log.info(f"  reject {s.label[k]:>8}: lambda_max {new.load_factor:.5f} does not increase")
+            continue
+        sol, open_ids, lam = new, trial, new.load_factor
+        K = len(open_ids)
+        isl = islanding_by_state(s, model.states, sol.z)
+        steps.append({"criterion": criterion, "K": K, "opened": s.label[k], "branch_id": k,
+                      "phase": "load", "lambda_max": round(lam, 6),
+                      "load_mw": round(lam * s.pd_nom.sum() * s.base_mva, 1),
+                      "lp_solves": n_lp, "time_s": round(time.time() - t0, 1),
+                      "states_with_islands": len(isl), "open_lines": " ".join(s.label[l] for l in open_ids)})
+        log.info(f"  {criterion} K={K}: open {s.label[k]:>8} -> lambda_max {lam:.5f} "
+                 f"({lam * s.pd_nom.sum() * s.base_mva:,.1f} MW) | {n_lp} LPs, {time.time() - t0:.0f} s")
+        if export_root:
+            export(_Quiet(), model, sol, os.path.join(export_root, criterion, f"K{K}"),
+                   meta={"heuristic": criterion, "mode": "load", "lp_solves": n_lp})
+    log.info(f"{criterion}: {len(open_ids)} openings, {n_lp} LPs, {time.time() - t0:.0f} s, "
+             f"final lambda_max {lam:.5f}")
+    model.set_objective("cost")
+    return steps
+
+
+LOAD_COLUMNS = ["criterion", "K", "opened", "branch_id", "phase", "lambda_max", "load_mw", "lp_solves",
+                "time_s", "states_with_islands", "open_lines"]
+
+
+def summarize_load(out, lam0):
+    rows = []
+    for crit in CRITERIA:
+        f = os.path.join(out, f"path_{crit}.csv")
+        if not os.path.exists(f):
+            continue
+        try:
+            p = pd.read_csv(f)
+        except pd.errors.EmptyDataError:
+            p = pd.DataFrame(columns=LOAD_COLUMNS)
+        best = float(p.lambda_max.max()) if len(p) else lam0
+        rows.append({"criterion": crit, "openings": len(p), "lambda_max_K0": round(lam0, 5),
+                     "best_lambda_max": round(best, 5),
+                     "K_of_best": int(p.loc[p.lambda_max.idxmax(), "K"]) if len(p) else 0,
+                     "lp_solves": int(p.lp_solves.iloc[-1]) if len(p) else 1,
+                     "time_s": float(p.time_s.iloc[-1]) if len(p) else 0.0})
+    return pd.DataFrame(rows)
+
+
 PATH_COLUMNS = ["criterion", "K", "opened", "branch_id", "phase", "overload_mw", "cost", "milp_cost",
                 "lp_solves", "time_s", "states_with_islands", "open_lines"]
 
@@ -340,6 +423,8 @@ EPILOG = """examples (from project/):
   python heuristics/sequential.py --load-factor 0.80 --out-root cs1-cost/results
   # CS2: above lambda_max the original topology is infeasible: violation phase, then cost phase
   python heuristics/sequential.py --load-factor 0.90 --out-root cs2-feasibility/results
+  # CS2: maximum load factor per K (lambda_max(K)), all criteria
+  python heuristics/sequential.py --mode load --max-open 10 --out-root cs2-feasibility/results
   # only TD, up to 10 openings and 120 LPs
   python heuristics/sequential.py --load-factor 0.85 --criteria TD --max-open 10 --max-lp 120 --out-root cs1-cost/results
 """
@@ -360,6 +445,10 @@ def main(argv=None):
                     help="renewable available power as a share of lambda x nominal load, e.g. 0.20 (default: 0)")
     ap.add_argument("--criteria", nargs="+", default=CRITERIA, choices=CRITERIA,
                     help="criteria to run, each one separately (default: all five)")
+    ap.add_argument("--mode", default="auto", choices=["auto", "load"],
+                    help="auto (default): cost heuristic, preceded by the violation phase if the "
+                         "original topology is infeasible at --load-factor; load: maximize the load "
+                         "factor (CS2: lambda_max per K; --load-factor is ignored)")
     ap.add_argument("--max-open", type=int, default=10, help="stop after this many openings (default: 10)")
     ap.add_argument("--max-lp", type=int, default=90, help="max LP solves per criterion (default: 90)")
     ap.add_argument("--allow-islands", action="store_true",
@@ -372,7 +461,8 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     out = os.path.join(args.out_root, args.source, args.formulation, CONFIG_NAME[args.contingencies],
-                       case_tag(args.load_factor, args.renewables, args.penetration), "heuristic")
+                       "max_load" if args.mode == "load" else case_tag(args.load_factor, args.renewables, args.penetration),
+                       "heuristic")
     log = get_logger(out)
     log.info(f"sequential.py {' '.join(sys.argv[1:])}")
     log.info(f"output -> {out}")
@@ -388,6 +478,23 @@ def main(argv=None):
     milp = saved_milp_costs(args.milp_dir)
     if milp:
         log.info(f"MILP costs read from {args.milp_dir}: K = {sorted(milp)}")
+
+    if args.mode == "load":
+        model.set_objective("max_load")
+        sol0 = solve_topology(model, [], duals=True)
+        lam0 = sol0.load_factor
+        log.info(f"K=0 lambda_max = {lam0:.5f} ({lam0 * system.pd_nom.sum() * system.base_mva:,.1f} MW)")
+        criteria_table(model, sol0).to_csv(os.path.join(out, "criteria_K0.csv"), index=False)
+        model.set_objective("cost")
+        for crit in args.criteria:
+            steps = run_load_mode(model, crit, args.max_open, args.max_lp, log,
+                                  export_root=None if args.no_export else out, allow_islands=args.allow_islands)
+            pd.DataFrame(steps, columns=LOAD_COLUMNS).to_csv(os.path.join(out, f"path_{crit}.csv"), index=False)
+        tab = summarize_load(out, lam0)
+        tab.to_csv(os.path.join(out, "summary_criteria.csv"), index=False)
+        log.info("\nSummary by criterion:\n" + tab.to_string(index=False))
+        model.dispose()
+        return 0
 
     sol0 = solve_topology(model, [], duals=True)
     cost0, overload0 = (None if sol0 is None else sol0.cost), None

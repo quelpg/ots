@@ -127,7 +127,7 @@ def main(argv=None):
     if milp and args.warm_start != "none":
         if args.warm_start == "auto":
             kmax = len(model.LS) if args.K is None else args.K
-            key = "n_open" if args.objective == "min_switching" else "cost"
+            key = {"min_switching": "n_open", "max_load": "lambda"}.get(args.objective, "cost")
             best = cheapest_saved([base_dir] + args.warm_start_dir, kmax, key)
         else:
             from model.solution import saved_topology
