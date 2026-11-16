@@ -25,8 +25,8 @@ geração barata está longe da carga (a energia precisa atravessar a rede).
 Os resultados e a interpretação de cada análise ficam em `RESULTS_NOTES.md` (§0 tem o mapa das
 análises). O mapa caso de estudo → pasta e os comandos estão no `README.md`.
 
-**Reorganização de 2026-11-16:** o projeto foi organizado por caso de estudo (`reference-k0/`,
-`cs1a-k-sweep/`, `cs2-full-n1/`, `heuristics/`, `preprocessing/`). O código antigo foi para
+**Reorganização de 2026-11-16:** o projeto foi organizado por caso de estudo (`reference/`,
+`cs1-cost/`, `cs2-feasibility/`, `cs3-renewables/`, `heuristics/`, `preprocessing/`). O código antigo foi para
 `old/pre-reorg-2026-11/` (tag git `pre-reorg`); os caminhos de código citados nos itens já feitos
 abaixo se referem a ele.
 
@@ -68,6 +68,30 @@ abaixo se referem a ele.
 - [ ] Quais linhas abrem, se elas se repetem entre os K e quais limites elas aliviam
       (já se sabe: as soluções são aninhadas de K1 até K8)
 - [ ] Mudanças no despacho (quais geradores ganham e quais perdem)
+
+### NOVA ESTRUTURA DOS CASOS (2026-11-16) – prevalece sobre o que está abaixo
+
+- Lista **completa** (197 estados = 1 + 177 linhas não radiais + 19 geradores; os outros 35 dos 54
+  do MATPOWER são compensadores síncronos, Pmax = 0) em todos os casos, sem exclusões; varia o
+  nível de carga **λ** (todas as cargas × λ; a geração não escala). K continua sendo o nº máximo de
+  linhas abertas.
+- [x] Teste de λ reproduzido no PC com Gurobi (mesmos custos da nuvem): completa viável até
+      λ_max = 0,8501 (3.606 MW); reduzida até 1,0099; DCOPF sem N-1 até 1,33
+- [x] A inviabilidade acima de λ_max é da rede: nenhuma contingência é inviável sozinha; o conflito
+      mínimo em λ = 0,852 é base + linha 8-5 + linha 26-30 + gerador da barra 10 + gerador da barra 66
+      (tirando qualquer um, fica viável). Sem a maior unidade (1.182 MW) ainda sobram 5.333 MW
+- [ ] Parâmetro λ (`load_factor`) e lista completa como padrão no pacote `model/`
+- [ ] Referência: grade de λ (0,50 … 0,85): copper plate, DCOPF, SC-DCOPF, prêmio de segurança
+- [ ] CS1 (custo, λ ≤ λ_max): heurística em todos os λ da grade; MILP com warm start em 2–3 λ
+      escolhidos pela grade
+- [ ] CS2 (recuperar a viabilidade, λ > λ_max; ex.: 0,90 / 0,95 / 1,0): LP relaxado (folgas nos
+      limites de fluxo, min violação) → heurística com os duais desse LP até a violação zerar (K_h,
+      viabilidade provada pelo LP sem folgas) → MILP de chaveamento mínimo com warm start (K menor e
+      limite inferior) → MILP de custo nesse K. Resultado: K_min por λ. Em λ = 1, K ≤ 3 já é inviável
+- [ ] Ferramenta auxiliar: LP de max λ (carga máxima que uma topologia fixa aguenta sob N-1)
+- [ ] CS3 (renováveis): λ ≈ 0,80, concentrado × distribuído
+- A varredura antiga (λ = 1, lista reduzida) vira só validação da heurística
+  (`heuristics/benchmark/`). O "CS1b" (aumentar a carga com a lista reduzida) foi descartado.
 
 ### Análise A+ - qualidade das soluções (`ots-sc-dcopf/solution-quality/ots-solution-quality.ipynb`)
 

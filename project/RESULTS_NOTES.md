@@ -8,7 +8,7 @@
 > `core_screening.py`, ...) refer to the code that produced these results, now in
 > `old/pre-reorg-2026-11/` (reorganization of 2026-11-16).
 >
-> **Current model** (thesis section 3.3; used in §1 only). SC-DCOPF (`reference-k0/`) with a
+> **Current model** (thesis section 3.3; used in §1 only). SC-DCOPF (`reference/`) with a
 > **preventive** N-1 criterion plus preventive transmission switching:
 > - Objective: base-case cost only, $\min \sum_g c_g P_{g,0} S_{base}$ (no contingency
 >   probabilities, as in Hedman et al. 2009).
@@ -30,15 +30,20 @@
 
 ## 0. Analysis map
 
+> **Restructured on 2026-11-16** (see `README.md`): every case uses the full contingency list and
+> varies the load level λ (Reference per λ; CS1 cost, λ ≤ λ_max = 0.850; CS2 loadability,
+> λ > λ_max; CS3 renewables). The K sweep in §1 (λ = 1, reduced list) is now the benchmark of the
+> heuristic (`heuristics/benchmark/`). The table below is the map before the restructuring.
+
 Each case study answers four questions. Everything else is a tool for one of them.
 
 | # | Question | Study case / folder | Status |
 |---|---|---|---|
-| 1 | Cost of N-1 security without switching (K = 0) | Reference, `reference-k0/` | done |
-| A | How much does the OTS reduce the cost, with how many openings? (reduced $\mathcal{C}_T$) | CS1a, `cs1a-k-sweep/` | sweep K = 0–10 done (§1) |
-| A+ | Can the solutions of A be improved? Which contingencies limit the cost? | CS1a, `cs1a-k-sweep/` | in progress (§1.5); heuristic warm start next |
+| 1 | Cost of N-1 security without switching (K = 0) | Reference, `reference/` | done |
+| A | How much does the OTS reduce the cost, with how many openings? (reduced $\mathcal{C}_T$) | benchmark, `heuristics/benchmark/` | sweep K = 0–10 done (§1) |
+| A+ | Can the solutions of A be improved? Which contingencies limit the cost? | benchmark, `heuristics/benchmark/` | in progress (§1.5); heuristic warm start next |
 | — | How do the savings change with the load level? | CS1b, `cs1b-load-levels/` | to do |
-| B | With the full $\mathcal{C}_T$, which K makes the problem feasible? | CS2, `cs2-full-n1/` | K ≤ 3 proven infeasible |
+| B | With the full $\mathcal{C}_T$, which K makes the problem feasible? | CS2, `cs2-feasibility/` | K ≤ 3 proven infeasible |
 | R | Renewable siting and curtailment | CS3, `cs3-renewables/` | to do |
 | V | Are the OTS solutions right? (pandapower, brute force K = 1) | `validation/` | to do |
 
@@ -49,7 +54,7 @@ How the results so far were produced (old code, now in `old/pre-reorg-2026-11/ot
 - `sweep_k.py`: runs the notebook for a range of K. `plot_k_sweep.py`: the K-sweep figure
   (→ `figures/`).
 - `<config>_improved/` holds the solutions improved by `solution-quality/`.
-- `cs1a-k-sweep/logs/`: console logs of the sweep runs.
+- `heuristics/benchmark/logs/`: console logs of the sweep runs.
 - **Warm start** (`ots-sc-dcopf.ipynb`, §6.1): each K starts from the cheapest saved result with
   $K' \le K$, looking in `<config>/` and `<config>_improved/`. If there is none, it uses the
   topology of `core_screening.py` (Analysis B). The warm start only gives Gurobi a starting
@@ -96,7 +101,7 @@ For K ≥ 3 the reported `runtime_s` is the last run only. The total search was 
 
 ### 1.2 Checks
 
-- **K = 0 reproduces the SC-DCOPF** (`reference-k0/results/.../redispatch_with_exclusions/contingencies`,
+- **K = 0 reproduces the SC-DCOPF** (`reference/results/.../redispatch_with_exclusions/contingencies`,
   $109,681.25/h). ✔
 - **Cost is non-increasing in K.** ✔ (Only after the chained warm start, see §1.4.)
 - K1 ⊂ K2 (nested, both proven optimal). From K4 on the solutions are nested again
@@ -179,7 +184,7 @@ states**, so this does not pay off here. By-product: the 31 states that entered 
 
 | | Cost ($/h) | Lines opened | Notes |
 |---|---|---|---|
-| SC-DCOPF, fixed topology | 93,152.38 | 0 | reference (`reference-k0/RESULTS_NOTES.md`) |
+| SC-DCOPF, fixed topology | 93,152.38 | 0 | reference (`reference/RESULTS_NOTES.md`) |
 | OTS, `MIP_GAP = 1e-4` | 93,029.48 | 43 | saved in `old/pre-reorg-2026-11/results-legacy/.../basecase/`; 0.6 s |
 | OTS, exact optimum (`MIP_GAP = 0`) | **93,026.73** | — | −$125.65/h (−0.13%) |
 | OTS, exact + tie-break (min. lines opened) | **93,026.73** | **4** | 47-69, 49-69, 89-92, 103-110 (scratch test, not in notebook) |

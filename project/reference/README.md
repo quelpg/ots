@@ -3,6 +3,11 @@
 **Question:** how much does N-1 security cost without switching (the *security premium*), and
 which contingencies cannot be covered at all?
 
+**New structure (2026-11-16):** full contingency list (197 states) and load level λ. To do: per λ
+(0.50 … 0.85), the cost without network (copper plate), DCOPF and SC-DCOPF, the base-case
+congestion cost (DCOPF − copper) and the security premium (SC-DCOPF − DCOPF). The results below
+are the old runs at λ = 1, where the full list is infeasible and three contingencies were excluded.
+
 ## Results (MATPOWER data)
 
 `results/matpower/<formulation>/<config>/`, where `<config>` is the set of contingencies:
