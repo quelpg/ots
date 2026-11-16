@@ -7,7 +7,7 @@ Uses exactly the data the SC-DCOPF / OTS-SC-DCOPF notebooks use:
   (BASE_KV, bus type, TAP/SHIFT), matched to branch_id with the same status == 1 filter.
 
 Layout: bus positions follow the classic IEEE 118-bus one-line drawing, transcribed by hand
-into scripts/ieee118_bus_positions.csv (x, y and bar length in reference-image pixels; edit
+into preprocessing/ieee118_bus_positions.csv (x, y and bar length in reference-image pixels; edit
 that file to move a bus). Busbars are horizontal bars, branches are orthogonal (Manhattan)
 connectors that leave a bar from its top or bottom edge, towards the other bus.
 
@@ -15,7 +15,7 @@ Cell ids are stable (bus_<n>, br_<branch_id>, gen_<gen_id>, load_<n>), so per-ca
 highlighting can later be applied to this same file by id.
 
 Output: figures/ieee118_unifilar.drawio
-Run from anywhere:  python scripts/single_line_diagram.py
+Run from anywhere:  python preprocessing/single_line_diagram.py
 """
 
 import base64

@@ -3,6 +3,9 @@
 > Tracking of results. Numeric CSVs live under `results/<formulation>/<config>/`.
 > This file is for notes and interpretation.
 >
+> Produced by `sc-dcopf.ipynb`, now in `../old/pre-reorg-2026-11/sc-dcopf/` (reorganization of
+> 2026-11-16); the CSVs are in `results/matpower/...` next to this file.
+>
 > **Organization:** results are indexed by **formulation** (how infeasibilities are handled)
 > and by **config** (which contingencies are included):
 > - Formulations: `redispatch_only` · `redispatch_with_exclusions` · `with_load_shedding` (future)

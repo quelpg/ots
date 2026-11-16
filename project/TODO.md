@@ -22,8 +22,26 @@ geração barata está longe da carga (a energia precisa atravessar a rede).
 2. Que número ou gráfico vai para a tese por causa disso?
 3. Se nenhuma das duas respostas for clara, deixar para o fim ou descartar.
 
-Os resultados e a interpretação de cada análise ficam em `ots-sc-dcopf/RESULTS_NOTES.md` (§0 tem o
-mapa das análises e onde está cada código).
+Os resultados e a interpretação de cada análise ficam em `RESULTS_NOTES.md` (§0 tem o mapa das
+análises). O mapa caso de estudo → pasta e os comandos estão no `README.md`.
+
+**Reorganização de 2026-11-16:** o projeto foi organizado por caso de estudo (`reference-k0/`,
+`cs1a-k-sweep/`, `cs2-full-n1/`, `heuristics/`, `preprocessing/`). O código antigo foi para
+`old/pre-reorg-2026-11/` (tag git `pre-reorg`); os caminhos de código citados nos itens já feitos
+abaixo se referem a ele.
+
+---
+
+## Reorganização e reescrita do código em `.py` (2026-11-16)
+
+- [x] Parte 1: mover as pastas (commit só de renomeações), READMEs, caminhos do pré-processamento
+      (rodado de novo: `processed/` e o diagrama não mudaram)
+- [ ] Parte 2: pacote `model/` (`data.py`, `states.py`, `build.py`, `solution.py`) + `tests/check_reference.py`
+      (93.152,38 sem N-1; 109.681,25 em K = 0; 107.665,95 na topologia de K = 2; MILP ótimo em K = 1 e 2)
+- [ ] Reescrever os scripts de cada caso usando o pacote (sweep de K, figura, core screening), cada um
+      reproduzindo o resultado antigo
+- [ ] `validation/`: `common.py` + um `validate_<caso>.py` por caso de estudo
+- [ ] Todo script com `--help` completo e listado no README da pasta
 
 ---
 

@@ -1,9 +1,14 @@
 # OTS-SC-DCOPF — Results Notes (IEEE 118-bus, MATPOWER data)
 
 > Tracking of results and open decisions. Numeric CSVs live under
-> `results/<source>/<formulation>/<config>/<K>/`. This file is for notes and interpretation.
+> `<case>/results/<source>/<formulation>/<config>/<K>/` (see `README.md` for the case folders).
+> This file is for notes and interpretation.
 >
-> **Current model** (thesis section 3.3; used in §1 only). SC-DCOPF (`../sc-dcopf/`) with a
+> **Code names in this file** (`ots-sc-dcopf.ipynb`, `sweep_k.py`, `solution-quality/`,
+> `core_screening.py`, ...) refer to the code that produced these results, now in
+> `old/pre-reorg-2026-11/` (reorganization of 2026-11-16).
+>
+> **Current model** (thesis section 3.3; used in §1 only). SC-DCOPF (`reference-k0/`) with a
 > **preventive** N-1 criterion plus preventive transmission switching:
 > - Objective: base-case cost only, $\min \sum_g c_g P_{g,0} S_{base}$ (no contingency
 >   probabilities, as in Hedman et al. 2009).
@@ -27,24 +32,24 @@
 
 Each case study answers four questions. Everything else is a tool for one of them.
 
-| # | Question | Where | Status |
+| # | Question | Study case / folder | Status |
 |---|---|---|---|
-| 1 | Cost of N-1 security without switching (K = 0) | `../sc-dcopf/sc-dcopf.ipynb` | done |
-| A | How much does the OTS reduce the cost, with how many openings? (reduced $\mathcal{C}_T$) | `ots-sc-dcopf.ipynb` + `sweep_k.py` | sweep K = 0–10 done (§1) |
-| A+ | Can the solutions of A be improved? Which contingencies limit the cost? | `solution-quality/ots-solution-quality.ipynb` | in progress (§1.5) |
-| V | Are the OTS solutions right? (pandapower, brute force K = 1) | to do | — |
-| B | With the full $\mathcal{C}_T$, which K makes the problem feasible? | `full-ct-feasibility/core_screening.py` (to become a notebook) | later |
+| 1 | Cost of N-1 security without switching (K = 0) | Reference, `reference-k0/` | done |
+| A | How much does the OTS reduce the cost, with how many openings? (reduced $\mathcal{C}_T$) | CS1a, `cs1a-k-sweep/` | sweep K = 0–10 done (§1) |
+| A+ | Can the solutions of A be improved? Which contingencies limit the cost? | CS1a, `cs1a-k-sweep/` | in progress (§1.5); heuristic warm start next |
+| — | How do the savings change with the load level? | CS1b, `cs1b-load-levels/` | to do |
+| B | With the full $\mathcal{C}_T$, which K makes the problem feasible? | CS2, `cs2-full-n1/` | K ≤ 3 proven infeasible |
+| R | Renewable siting and curtailment | CS3, `cs3-renewables/` | to do |
+| V | Are the OTS solutions right? (pandapower, brute force K = 1) | `validation/` | to do |
 
-Folder layout (`ots-sc-dcopf/`):
+How the results so far were produced (old code, now in `old/pre-reorg-2026-11/ots-sc-dcopf/`):
 
-- `ots-sc-dcopf.ipynb`: **the** OTS model, one K per run. Used by A and B (separated by
-  `FORMULATION`, so their results never overwrite each other). Not copied anywhere, so both
-  analyses always use the same model.
+- `ots-sc-dcopf.ipynb`: the OTS model, one K per run. Used by A and B (separated by
+  `FORMULATION`, so their results never overwrite each other).
 - `sweep_k.py`: runs the notebook for a range of K. `plot_k_sweep.py`: the K-sweep figure
-  (→ `../figures/`).
-- `results/<source>/<formulation>/<config>/K<k>/`: results of every analysis.
-  `<config>_improved/` holds the solutions improved by `solution-quality/`.
-- `logs/`: console logs of the sweep runs.
+  (→ `figures/`).
+- `<config>_improved/` holds the solutions improved by `solution-quality/`.
+- `cs1a-k-sweep/logs/`: console logs of the sweep runs.
 - **Warm start** (`ots-sc-dcopf.ipynb`, §6.1): each K starts from the cheapest saved result with
   $K' \le K$, looking in `<config>/` and `<config>_improved/`. If there is none, it uses the
   topology of `core_screening.py` (Analysis B). The warm start only gives Gurobi a starting
@@ -71,9 +76,9 @@ For K ≥ 3 the reported `runtime_s` is the last run only. The total search was 
 
 ### 1.1 Results
 
-![K sweep](../figures/k_sweep_redispatch_with_exclusions_contingencies.png)
+![K sweep](figures/k_sweep_redispatch_with_exclusions_contingencies.png)
 
-(`python plot_k_sweep.py` → `../figures/k_sweep_redispatch_with_exclusions_contingencies.png` / `.pdf`.)
+(`python plot_k_sweep.py` → `figures/k_sweep_redispatch_with_exclusions_contingencies.png` / `.pdf`.)
 
 | K | Cost ($/h) | Δ vs K−1 | Saving vs K0 | Status | Best bound | Time (s) | Lines opened |
 |---|---|---|---|---|---|---|---|
@@ -91,7 +96,7 @@ For K ≥ 3 the reported `runtime_s` is the last run only. The total search was 
 
 ### 1.2 Checks
 
-- **K = 0 reproduces the SC-DCOPF** (`../sc-dcopf/.../redispatch_with_exclusions/contingencies`,
+- **K = 0 reproduces the SC-DCOPF** (`reference-k0/results/.../redispatch_with_exclusions/contingencies`,
   $109,681.25/h). ✔
 - **Cost is non-increasing in K.** ✔ (Only after the chained warm start, see §1.4.)
 - K1 ⊂ K2 (nested, both proven optimal). From K4 on the solutions are nested again
@@ -174,8 +179,8 @@ states**, so this does not pay off here. By-product: the 31 states that entered 
 
 | | Cost ($/h) | Lines opened | Notes |
 |---|---|---|---|
-| SC-DCOPF, fixed topology | 93,152.38 | 0 | reference (`../sc-dcopf/RESULTS_NOTES.md`) |
-| OTS, `MIP_GAP = 1e-4` | 93,029.48 | 43 | saved in `results/.../basecase/`; 0.6 s |
+| SC-DCOPF, fixed topology | 93,152.38 | 0 | reference (`reference-k0/RESULTS_NOTES.md`) |
+| OTS, `MIP_GAP = 1e-4` | 93,029.48 | 43 | saved in `old/pre-reorg-2026-11/results-legacy/.../basecase/`; 0.6 s |
 | OTS, exact optimum (`MIP_GAP = 0`) | **93,026.73** | — | −$125.65/h (−0.13%) |
 | OTS, exact + tie-break (min. lines opened) | **93,026.73** | **4** | 47-69, 49-69, 89-92, 103-110 (scratch test, not in notebook) |
 
@@ -184,7 +189,7 @@ states**, so this does not pay off here. By-product: the 31 states that entered 
   (49-69 and 89-92 were at ~100%).
 - **The list of 43 opened lines is not meaningful** (degenerate optimum, see §5.2): the same cost
   is reached with 4 openings. Do not report the CSV list as is.
-- `results/.../basecase/` folders predate the K-tagged layout (`<config>/<K>/`) and were run with
+- The legacy `basecase/` folders (`old/pre-reorg-2026-11/results-legacy/`) predate the K-tagged layout (`<config>/<K>/`) and were run with
   $\Delta\theta^{\max} = 180°$.
 
 ---
@@ -234,7 +239,7 @@ these may also rely on islands (see §3.4).
   remaining gap ($111/h) is larger than the K4→K5 gain, so K = 5 could still improve.
   Diminishing returns: K3→K4 −$50.49/h, K4→K5 −$9.30/h.
 - K = 1 and 2 leave no files (the notebook only exports when a solution exists).
-- K = 3 results: `results/matpower/redispatch_only/cont_trans/K3/`. 178 states, 13 active
+- K = 3 results: `old/pre-reorg-2026-11/results-legacy/ots-sc-dcopf/matpower/redispatch_only/cont_trans/K3/`. 178 states, 13 active
   generators, no island in the base topology.
 - The three opened lines are in the region of the two critical contingencies (8-5, 38-37), so
   the switching acts where the bottleneck is.
