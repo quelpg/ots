@@ -1,0 +1,5 @@
+state,kind,element,feasible_without_it
+line 8-5 out,line,7,True
+line 26-30 out,line,37,True
+"gen 0 (bus 10, 505 MW) out",gen,0,True
+"gen 11 (bus 66, 784 MW) out",gen,11,True

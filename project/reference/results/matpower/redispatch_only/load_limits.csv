@@ -1,0 +1,8 @@
+relaxed,lambda_max,load_mw
+none (actual model),0.85013,3606.2
+flow limits,0.99175,4207.0
+angle limits,0.86146,3654.3
+generator capacity,1.19469,5067.9
+flow + angle,1.25719,5333.0
+flow + capacity,1.55669,6603.5
+angle + capacity,1.24389,5276.6

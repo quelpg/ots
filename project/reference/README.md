@@ -37,6 +37,56 @@ security premium = SC-DCOPF − DCOPF.
 - No line is at its limit in the base case of the SC-DCOPF at any λ (the DCOPF has 2): the binding
   limits are in the contingency states (3–4 lines, 8 at λ = 0.85).
 
+## What limits the load (load_limits.py)
+
+Diagnostic on the original topology (K = 0, full list). Each family of constraints is relaxed in
+turn, only to see which one holds the load; the model keeps every limit. Command (from `project/`):
+
+```
+python reference/load_limits.py                     # lambda_max table + violation per lambda (~1 min)
+python reference/load_limits.py --conflict-sets     # + minimal conflicting sets (~10 min)
+```
+
+`load_limits.csv` – λ_max with each family relaxed:
+
+| Relaxed | λ_max | MW |
+|---|---|---|
+| none (actual model) | 0.850 | 3,606 |
+| angle limits (±0.6 → ±10 rad) | 0.861 | 3,654 |
+| flow limits | **0.992** | 4,207 |
+| generator capacity (Pmax × 10) | **1.195** | 5,068 |
+| flow + angle | 1.257 | 5,333 (= total Pmax − largest unit) |
+| angle + capacity | 1.244 | 5,277 |
+| flow + capacity | 1.557 | 6,604 |
+
+- At λ_max = 0.850 the limit is joint: flow limits **and** generator capacity under the fixed
+  participation factors (units keep headroom for primary response). Relaxing either one moves it.
+- Between 0.850 and 0.992 unlimited transmission capacity would restore N-1: the infeasibility
+  is caused by transmission limits, so switching may help (CS2).
+- Above 0.992 not even unlimited transmission capacity helps (angle limits and generator capacity).
+
+`violation_by_lambda.csv` – minimum flow-limit overload (LP with overload slacks, equal weights):
+
+| λ | Total overload | States / lines | Worst |
+|---|---|---|---|
+| 0.86 | 12.6 MW | 2 / 2 | 23-25 with 26-30 out (9.8 MW) |
+| 0.88 | 39.5 MW | 2 / 2 | 23-25 with 26-30 out (30.9 MW) |
+| 0.90 | 66.4 MW | 2 / 2 | 23-25 with 26-30 out (52.0 MW) |
+| 0.95 | 175.2 MW | 5 / 4 | 23-25 with 26-30 out (93.0 MW) |
+| 0.99 | 430.7 MW | 12 / 7 | 23-25 with 26-30 out (132.6 MW) |
+| 1.00 | infeasible even without flow limits | | |
+
+`conflict_set_<limit>.csv` – minimal set of contingencies that is infeasible together (deletion
+filter; removing any one of them makes it feasible; one minimal set, it depends on the order):
+
+| Just above | Set (with the base case) |
+|---|---|
+| λ = 0.852, every limit | line 8-5, line 26-30, generator bus 10 (505 MW), generator bus 66 (784 MW) |
+| λ = 0.994, flow limits relaxed | the same four + line 65-68 |
+
+The same contingencies hold the system at both limits; at the first one through the flow limits
+(23-25), at the second one through the angle limits and the generator capacity.
+
 ## Old results at λ = 1 (MATPOWER data, old notebook)
 
 `results/matpower/<formulation>/<config>/lambda1.000/`, where `<config>` is the set of

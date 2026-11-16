@@ -1,0 +1,7 @@
+load_factor,load_mw,status,total_overload_mw,n_states,n_lines,worst_mw,worst_line,worst_state,lines_by_overload
+0.86,3648.1,feasible with overload,12.64,2.0,2.0,9.82,23-25,line 26-30 out,23-25 9.8; 15-17 2.8
+0.88,3733.0,feasible with overload,39.53,2.0,2.0,30.9,23-25,line 26-30 out,23-25 30.9; 15-17 8.6
+0.9,3817.8,feasible with overload,66.42,2.0,2.0,51.98,23-25,line 26-30 out,23-25 52.0; 15-17 14.4
+0.95,4029.9,feasible with overload,175.16,5.0,4.0,92.96,23-25,line 26-30 out,23-25 118.1; 15-17 29.8; 25-27 14.1
+0.99,4199.6,feasible with overload,430.74,12.0,7.0,132.55,23-25,line 26-30 out,23-25 207.8; 25-27 61.7; 49-66 45.7
+1.0,4242.0,infeasible even without flow limits,,,,,,,

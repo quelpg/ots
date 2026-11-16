@@ -13,6 +13,9 @@ At each step: solve the SC-DCOPF LP on the current topology (`model/` package, d
 rank the closed switchable lines by the criterion, open the best one and re-solve. Keep it if the
 LP is feasible and cheaper; otherwise drop the line from the candidates. Lines whose opening islands
 the base topology are never candidates.
+Islanding criterion: an opening is rejected if, in any branch contingency, it isolates buses with
+load or a generator; an isolated empty bus (no load, no generator) is accepted (`--allow-islands`
+turns the check off). Every reported solution lists its isolated buses per state.
 
 | Criterion | Formula (line k, states c; f flow, dpi = π_to − π_from, μ flow-limit dual, φ self-PTDF) | Source |
 |---|---|---|

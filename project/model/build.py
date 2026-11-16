@@ -5,7 +5,8 @@ sides change:
 - `fix_topology(z)`  : z fixed (LP: SC-DCOPF on that topology; duals available),
 - `free_topology(K)` : z binary on L^S with sum(1 - z) <= K (MILP; K = None: no limit),
 - `set_load_factor(l)`: loads = l * nominal load,
-- `set_objective('cost' | 'max_load' | 'min_switching')`, `set_min_open(n)`.
+- `set_objective('cost' | 'max_load' | 'min_switching' | 'min_violation')`, `set_min_open(n)`;
+  'min_violation' needs `flow_slack=True` (overload slacks on every flow limit, CS2).
 
 Formulation (per state c; see model/README.md):
   balance      sum_{g in G_i} P_gc - lambda * Pd_i = sum_out f - sum_in f
@@ -48,7 +49,7 @@ def _env(output):
 
 class OTSModel:
     def __init__(self, system, states, load_factor=1.0, emerg_factor=EMERG_FACTOR,
-                 theta_max=THETA_MAX, output=False, name="OTS-SC-DCOPF"):
+                 theta_max=THETA_MAX, output=False, name="OTS-SC-DCOPF", flow_slack=False):
         t0 = time.time()
         self.sys, self.states = system, states
         self.emerg_factor, self.theta_max = emerg_factor, theta_max
@@ -81,6 +82,10 @@ class OTSModel:
         self.T = m.addMVar((NB, NS), lb=t_lb, ub=t_ub, name="theta")
         self.z = m.addMVar(NL, lb=1.0, ub=1.0, name="z")          # starts as the full topology (LP)
         self.lam = m.addMVar(1, lb=load_factor, ub=load_factor, name="lambda")
+        # overload slack s_lc >= 0 on the flow limit of branch l in state c (both directions);
+        # fixed at 0 except with the 'min_violation' objective (CS2: relaxed SC-DCOPF)
+        self.S = m.addMVar((NL, NS), lb=0.0, ub=0.0, name="s") if flow_slack else None
+        self.flow_relaxed = False
 
         # --- fixed matrices ---
         Cg = sp.csr_matrix((np.ones(NG), (s.gen_bus, np.arange(NG))), shape=(NB, NG))
@@ -97,8 +102,12 @@ class OTSModel:
             Pc, Fc, Tc = self.P[:, c], self.F[:, c], self.T[:, c]
             R = R0 if c == 0 else Rem
             self.c_bal.append(m.addConstr(Cg @ Pc + A @ Fc - pd_col @ self.lam == 0, name=f"bal_{c}"))
-            self.c_fmax.append(m.addConstr(Fc - R @ self.z <= 0, name=f"fmax_{c}"))
-            self.c_fmin.append(m.addConstr(Fc + R @ self.z >= 0, name=f"fmin_{c}"))
+            if flow_slack:                                        # |f| <= F z + s
+                self.c_fmax.append(m.addConstr(Fc - R @ self.z - self.S[:, c] <= 0, name=f"fmax_{c}"))
+                self.c_fmin.append(m.addConstr(Fc + R @ self.z + self.S[:, c] >= 0, name=f"fmin_{c}"))
+            else:
+                self.c_fmax.append(m.addConstr(Fc - R @ self.z <= 0, name=f"fmax_{c}"))
+                self.c_fmin.append(m.addConstr(Fc + R @ self.z >= 0, name=f"fmin_{c}"))
             on = np.flatnonzero(~f_fix[:, c])                     # branches in service in state c
             Bc = sp.csr_matrix((np.r_[1 / s.x[on], -1 / s.x[on]],
                                 (np.r_[np.arange(len(on)), np.arange(len(on))],
@@ -129,8 +138,11 @@ class OTSModel:
     def set_objective(self, kind):
         """'cost': min base-case cost [$/h] (lambda fixed).
         'max_load': max lambda (lambda becomes free; call set_load_factor to fix it again).
-        'min_switching': min number of open lines, sum_{L^S} (1 - z) (MILP; lambda fixed)."""
+        'min_switching': min number of open lines, sum_{L^S} (1 - z) (MILP; lambda fixed).
+        'min_violation': min total overload, sum_{l,c} s_lc [pu], equal weights (needs
+        flow_slack=True; CS2). With the other objectives the slacks are fixed at 0."""
         self.objective = kind
+        self._slack_bounds()
         if kind == "cost":
             self.m.setObjective(self.cost_vec @ self.P[:, 0], GRB.MINIMIZE)
         elif kind == "max_load":
@@ -138,8 +150,33 @@ class OTSModel:
             self.m.setObjective(self.lam.sum(), GRB.MAXIMIZE)
         elif kind == "min_switching":
             self.m.setObjective(len(self.LS) - self.z[self.LS].sum(), GRB.MINIMIZE)
+        elif kind == "min_violation":
+            if self.S is None:
+                raise ValueError("build the model with flow_slack=True for 'min_violation'")
+            self.m.setObjective(self.S.sum(), GRB.MINIMIZE)
         else:
             raise ValueError(f"unknown objective {kind!r}")
+
+    def relax_flow_limits(self, relaxed=True):
+        """Diagnostic: remove every flow limit (slacks free) with any objective; needs
+        flow_slack=True. Used to see which constraint family holds the load (reference case)."""
+        if self.S is None:
+            raise ValueError("build the model with flow_slack=True to relax the flow limits")
+        self.flow_relaxed = relaxed
+        self._slack_bounds()
+        self.m.update()
+
+    def _slack_bounds(self):
+        """Slacks free only with 'min_violation' or relax_flow_limits, and never on an open line:
+        an open branch carries no flow, slack or not (otherwise the relaxed LP could route flow
+        through it, paying a small slack, and understate the violation)."""
+        if self.S is None:
+            return
+        free = self.objective == "min_violation" or self.flow_relaxed
+        ub = np.full((self.sys.n_branch, len(self.states)), GRB.INFINITY if free else 0.0)
+        if free:
+            ub[np.asarray(self.z.ub) < 0.5, :] = 0.0         # branches fixed open
+        self.S.ub = ub
 
     def set_min_open(self, min_open=0):
         """Cut sum_{L^S} (1 - z) >= min_open (e.g. a K proven infeasible + 1)."""
@@ -156,6 +193,8 @@ class OTSModel:
             raise ValueError("only switchable (non-radial) branches can be open")
         self.z.vtype = GRB.CONTINUOUS
         self.z.lb = self.z.ub = z
+        self.m.update()
+        self._slack_bounds()
         self.c_kmax.rhs = 0.0
         self.c_kmin.rhs = len(self.LS)
         self.K = 0 if z.min() == 1 else int((z[self.LS] < 0.5).sum())

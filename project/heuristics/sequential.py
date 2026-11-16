@@ -16,6 +16,8 @@ phi = self-PTDF of k in the topology of state c). More negative = more promising
 Adaptation to N-1 (heuristic, not proven): the topology is shared by every state, so the
 contributions of the states are summed. Lines whose opening islands the base topology
 (phi_0 = 1) are never candidates; feasibility is always checked by the full LP.
+Islanding criterion: an opening is rejected if, in any branch contingency, it isolates buses
+with load or a generator (an isolated empty bus is accepted: no load or generation is lost).
 
 Output: <out-root>/<source>/<formulation>/<config>/lambda<l>/heuristic/
   path_<criterion>.csv            one row per accepted opening (cost, LPs, time, MILP cost if given)
@@ -37,7 +39,7 @@ sys.path.insert(0, ROOT)
 
 from model.build import OTSModel                                           # noqa: E402
 from model.data import load_system                                         # noqa: E402
-from model.solution import (export, get_logger, islanding_by_state,        # noqa: E402
+from model.solution import (export, forbidden_islands, get_logger, islanding_by_state,   # noqa: E402
                             isolated_buses, read_solution)
 from model.states import CONFIG_NAME, EXCLUSIONS, build_states, summary_lines   # noqa: E402
 
@@ -158,7 +160,7 @@ def solve_topology(model, open_ids, duals):
 
 
 def run_sequential(model, criterion, max_open, max_lp, log, export_root=None, milp_cost=None,
-                   forbid_contingency_islands=False):
+                   allow_islands=False):
     """Ruiz Fig. 1 with one criterion. Returns the list of accepted steps (dicts)."""
     s = model.sys
     t0 = time.time()
@@ -184,8 +186,8 @@ def run_sequential(model, criterion, max_open, max_lp, log, export_root=None, mi
         if isolated_buses(s, z):                          # connectivity of the base topology
             log.info(f"  reject {s.label[k]:>8}: islands the base topology")
             continue
-        if forbid_contingency_islands and islanding_by_state(s, model.states, z):
-            log.info(f"  reject {s.label[k]:>8}: islands buses in a contingency state")
+        if not allow_islands and forbidden_islands(s, model.states, z):
+            log.info(f"  reject {s.label[k]:>8}: isolates load or generation in a contingency state")
             continue
         new = solve_topology(model, trial, duals=True)
         n_lp += 1
@@ -283,8 +285,9 @@ def main(argv=None):
                     help="criteria to run, each one separately (default: all five)")
     ap.add_argument("--max-open", type=int, default=10, help="stop after this many openings (default: 10)")
     ap.add_argument("--max-lp", type=int, default=90, help="max LP solves per criterion (default: 90)")
-    ap.add_argument("--forbid-contingency-islands", action="store_true",
-                    help="reject openings that island buses in a branch contingency (default: allowed, as in the MILP)")
+    ap.add_argument("--allow-islands", action="store_true",
+                    help="accept openings that isolate load or generation in a contingency, if the LP is "
+                         "feasible (default: rejected; isolated empty buses are always accepted)")
     ap.add_argument("--milp-dir", default=None,
                     help="folder with K<k>/summary.csv of a MILP sweep, to print and save its cost per K")
     ap.add_argument("--out-root", required=True, help="results root of the study case")
@@ -320,7 +323,7 @@ def main(argv=None):
     for crit in args.criteria:
         steps = run_sequential(model, crit, args.max_open, args.max_lp, log,
                                export_root=None if args.no_export else out, milp_cost=milp,
-                               forbid_contingency_islands=args.forbid_contingency_islands)
+                               allow_islands=args.allow_islands)
         pd.DataFrame(steps, columns=PATH_COLUMNS).to_csv(os.path.join(out, f"path_{crit}.csv"), index=False)
     tab = summarize(out, sol0.cost)
     tab.to_csv(os.path.join(out, "summary_criteria.csv"), index=False)

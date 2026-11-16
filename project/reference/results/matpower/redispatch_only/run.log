@@ -30,3 +30,82 @@ Reference by load level (K = 0, $/h):
         0.95   4029.9             87563.36     87599.60                          2            NaN                          NaN                                 NaN               36.24                     NaN                   NaN
         1.00   4242.0             93026.73     93152.38                          2            NaN                          NaN                                 NaN              125.65                     NaN                   NaN
 2026-11-16 14:02:25  Saved summary_lambda.csv and the solutions to C:\Users\user\Documents\Documentos\Faculdade\TCC\code\ots\project\reference\results\matpower\redispatch_only/
+
+####################################################################################################
+2026-11-16 15:19:12  load_limits.py 
+2026-11-16 15:19:12  197 states (redispatch_only); nominal load 4,242 MW
+2026-11-16 15:19:15  lambda_max, relaxed none (actual model)   : 0.85013 (3606.2 MW)
+2026-11-16 15:19:18  lambda_max, relaxed flow limits           : 0.99175 (4207.0 MW)
+2026-11-16 15:19:21  lambda_max, relaxed angle limits          : 0.86146 (3654.3 MW)
+2026-11-16 15:19:23  lambda_max, relaxed generator capacity    : 1.19469 (5067.9 MW)
+2026-11-16 15:19:26  lambda_max, relaxed flow + angle          : 1.25719 (5333.0 MW)
+2026-11-16 15:19:30  lambda_max, relaxed flow + capacity       : 1.55669 (6603.5 MW)
+2026-11-16 15:19:32  lambda_max, relaxed angle + capacity      : 1.24389 (5276.6 MW)
+2026-11-16 15:19:35  lambda=0.860: feasible with overload, 12.64 MW in 2 states / 2 lines; worst 9.82 MW on 23-25 (line 26-30 out)
+2026-11-16 15:19:35  lambda=0.880: feasible with overload, 39.53 MW in 2 states / 2 lines; worst 30.9 MW on 23-25 (line 26-30 out)
+2026-11-16 15:19:35  lambda=0.900: feasible with overload, 66.42 MW in 2 states / 2 lines; worst 51.98 MW on 23-25 (line 26-30 out)
+2026-11-16 15:19:36  lambda=0.950: feasible with overload, 175.16 MW in 5 states / 4 lines; worst 92.96 MW on 23-25 (line 26-30 out)
+2026-11-16 15:19:37  lambda=0.990: feasible with overload, 430.74 MW in 12 states / 7 lines; worst 132.55 MW on 23-25 (line 26-30 out)
+2026-11-16 15:19:37  lambda=1.000: infeasible even without flow limits
+2026-11-16 15:19:37  
+Saved to C:\Users\user\Documents\Documentos\Faculdade\TCC\code\ots\project\reference\results\matpower\redispatch_only/
+
+####################################################################################################
+2026-11-16 15:19:52  load_limits.py --conflict-sets
+2026-11-16 15:19:52  197 states (redispatch_only); nominal load 4,242 MW
+2026-11-16 15:19:55  lambda_max, relaxed none (actual model)   : 0.85013 (3606.2 MW)
+2026-11-16 15:19:58  lambda_max, relaxed flow limits           : 0.99175 (4207.0 MW)
+2026-11-16 15:20:00  lambda_max, relaxed angle limits          : 0.86146 (3654.3 MW)
+2026-11-16 15:20:03  lambda_max, relaxed generator capacity    : 1.19469 (5067.9 MW)
+2026-11-16 15:20:06  lambda_max, relaxed flow + angle          : 1.25719 (5333.0 MW)
+2026-11-16 15:20:09  lambda_max, relaxed flow + capacity       : 1.55669 (6603.5 MW)
+2026-11-16 15:20:12  lambda_max, relaxed angle + capacity      : 1.24389 (5276.6 MW)
+2026-11-16 15:20:15  lambda=0.860: feasible with overload, 12.64 MW in 2 states / 2 lines; worst 9.82 MW on 23-25 (line 26-30 out)
+2026-11-16 15:20:15  lambda=0.880: feasible with overload, 39.53 MW in 2 states / 2 lines; worst 30.9 MW on 23-25 (line 26-30 out)
+2026-11-16 15:20:15  lambda=0.900: feasible with overload, 66.42 MW in 2 states / 2 lines; worst 51.98 MW on 23-25 (line 26-30 out)
+2026-11-16 15:20:16  lambda=0.950: feasible with overload, 175.16 MW in 5 states / 4 lines; worst 92.96 MW on 23-25 (line 26-30 out)
+2026-11-16 15:20:17  lambda=0.990: feasible with overload, 430.74 MW in 12 states / 7 lines; worst 132.55 MW on 23-25 (line 26-30 out)
+2026-11-16 15:20:17  lambda=1.000: infeasible even without flow limits
+2026-11-16 15:20:17  
+Minimal conflicting set at lambda = 0.8521 (all_limits):
+2026-11-16 15:21:44      filter: 25/196 tested, 172 left (83 s)
+2026-11-16 15:22:56      filter: 50/196 tested, 148 left (155 s)
+2026-11-16 15:23:54      filter: 75/196 tested, 123 left (213 s)
+2026-11-16 15:24:42      filter: 100/196 tested, 98 left (261 s)
+2026-11-16 15:25:12      filter: 125/196 tested, 73 left (291 s)
+2026-11-16 15:25:34      filter: 150/196 tested, 48 left (313 s)
+2026-11-16 15:25:49      filter: 175/196 tested, 23 left (329 s)
+2026-11-16 15:25:54    base case + ['line 8-5 out', 'line 26-30 out', 'gen 0 (bus 10, 505 MW) out', 'gen 11 (bus 66, 784 MW) out']
+2026-11-16 15:25:54    removing any one makes it feasible: True
+2026-11-16 15:25:54  
+Minimal conflicting set at lambda = 0.9938 (flow_relaxed):
+2026-11-16 15:28:15      filter: 25/196 tested, 172 left (136 s)
+2026-11-16 15:30:04      filter: 50/196 tested, 148 left (244 s)
+2026-11-16 15:31:32      filter: 75/196 tested, 123 left (333 s)
+2026-11-16 15:32:40      filter: 100/196 tested, 98 left (401 s)
+2026-11-16 15:33:30      filter: 125/196 tested, 74 left (451 s)
+2026-11-16 15:34:02      filter: 150/196 tested, 49 left (482 s)
+2026-11-16 15:34:19      filter: 175/196 tested, 24 left (500 s)
+2026-11-16 15:34:25    base case + ['line 8-5 out', 'line 26-30 out', 'line 65-68 out', 'gen 0 (bus 10, 505 MW) out', 'gen 11 (bus 66, 784 MW) out']
+2026-11-16 15:34:25    removing any one makes it feasible: True
+2026-11-16 15:34:25  
+Saved to C:\Users\user\Documents\Documentos\Faculdade\TCC\code\ots\project\reference\results\matpower\redispatch_only/
+
+####################################################################################################
+2026-11-16 15:47:28  load_limits.py 
+2026-11-16 15:47:28  197 states (redispatch_only); nominal load 4,242 MW
+2026-11-16 15:47:30  lambda_max, relaxed none (actual model)   : 0.85013 (3606.2 MW)
+2026-11-16 15:47:34  lambda_max, relaxed flow limits           : 0.99175 (4207.0 MW)
+2026-11-16 15:47:36  lambda_max, relaxed angle limits          : 0.86146 (3654.3 MW)
+2026-11-16 15:47:39  lambda_max, relaxed generator capacity    : 1.19469 (5067.9 MW)
+2026-11-16 15:47:43  lambda_max, relaxed flow + angle          : 1.25719 (5333.0 MW)
+2026-11-16 15:47:46  lambda_max, relaxed flow + capacity       : 1.55669 (6603.5 MW)
+2026-11-16 15:47:49  lambda_max, relaxed angle + capacity      : 1.24389 (5276.6 MW)
+2026-11-16 15:47:53  lambda=0.860: feasible with overload, 12.64 MW in 2 states / 2 lines; worst 9.82 MW on 23-25 (line 26-30 out)
+2026-11-16 15:47:53  lambda=0.880: feasible with overload, 39.53 MW in 2 states / 2 lines; worst 30.9 MW on 23-25 (line 26-30 out)
+2026-11-16 15:47:53  lambda=0.900: feasible with overload, 66.42 MW in 2 states / 2 lines; worst 51.98 MW on 23-25 (line 26-30 out)
+2026-11-16 15:47:54  lambda=0.950: feasible with overload, 175.16 MW in 5 states / 4 lines; worst 92.96 MW on 23-25 (line 26-30 out)
+2026-11-16 15:47:54  lambda=0.990: feasible with overload, 430.74 MW in 12 states / 7 lines; worst 132.55 MW on 23-25 (line 26-30 out)
+2026-11-16 15:47:54  lambda=1.000: infeasible even without flow limits
+2026-11-16 15:47:55  
+Saved to C:\Users\user\Documents\Documentos\Faculdade\TCC\code\ots\project\reference\results\matpower\redispatch_only/

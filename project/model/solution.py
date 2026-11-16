@@ -118,6 +118,20 @@ def islanding_by_state(system, states, z):
     return out
 
 
+def forbidden_islands(system, states, z):
+    """Islands that contain load or a generator ({state id: bus positions}). Criterion of the
+    project: an isolated bus with no load and no generator (a de-energized transit bus) is
+    accepted; isolating load or generation in any state is not."""
+    has_gen = np.zeros(system.n_bus, dtype=bool)
+    has_gen[system.gen_bus] = True
+    out = {}
+    for c, buses in islanding_by_state(system, states, z).items():
+        b = np.asarray(buses)
+        if (system.pd_nom[b] > 0).any() or has_gen[b].any():
+            out[c] = buses
+    return out
+
+
 # ----------------------------------------------------------------------------- tables
 def dispatch_table(system, sol):
     mw, pmax = sol.p0 * system.base_mva, system.pmax * system.base_mva
@@ -178,12 +192,14 @@ def report(log, model, sol):
     act = disp[disp.p_mw > 0.01]
     log.info(f"Active generators ({len(act)}):\n" + act.to_string(index=False))
     isl = islanding_by_state(s, model.states, sol.z)
+    bad = forbidden_islands(s, model.states, sol.z)
     if not isl:
         log.info("Islanding: no isolated bus in the base case or in any branch contingency")
     else:
         for c, buses in isl.items():
+            kind = "LOAD OR GENERATION ISOLATED (not accepted)" if c in bad else "empty buses only (accepted)"
             log.info(f"Islanding: {model.states[c].desc}: buses {[int(s.bus[i]) for i in buses]} "
-                     f"(load {model.sys.pd_nom[buses].sum() * sol.load_factor * s.base_mva:.1f} MW)")
+                     f"(load {model.sys.pd_nom[buses].sum() * sol.load_factor * s.base_mva:.1f} MW) - {kind}")
 
 
 def export(log, model, sol, out_dir, meta=None):
@@ -205,6 +221,7 @@ def export(log, model, sol, out_dir, meta=None):
         "max_switched": "inf" if sol.K is None else sol.K, "n_switched_lines": len(sol.open_ids),
         "theta_max_rad": model.theta_max, "objective": sol.objective,
         "n_states_with_islands": len(isl),
+        "n_states_isolating_load_or_gen": len(forbidden_islands(s, model.states, sol.z)),
     }
     metrics.update(meta or {})
     pd.DataFrame({"metric": list(metrics), "value": list(metrics.values())}).to_csv(
