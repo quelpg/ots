@@ -1,0 +1,3 @@
+2026-11-13 16:19:16  START min_switching | redispatch_only | MIN_OPEN=4 MAX_OPEN=10 K_LIST=[4] | TIME_LIMIT=3600 NOREL_TIME=600 THREADS=0
+2026-11-13 17:19:17  minsw it=1: core = 4 states, status = 9, 3600 s
+2026-11-13 17:19:18  END -> ../results/matpower/redispatch_only/screening/summary_min_switching.csv

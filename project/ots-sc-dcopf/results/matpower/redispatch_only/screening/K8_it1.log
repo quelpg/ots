@@ -1,0 +1,73 @@
+
+Gurobi 13.0.2 (win64) logging started Mon Nov  9 10:18:42 2026
+
+Set parameter LogFile to value "results/matpower/redispatch_only/screening/K8_it1.log"
+Set parameter MIPGap to value 0.01
+Set parameter TimeLimit to value 600
+Set parameter MIPFocus to value 1
+Set parameter DualReductions to value 0
+Gurobi Optimizer version 13.0.2 build v13.0.2rc1 (win64 - Windows 11+.0 (26200.2))
+
+CPU model: 13th Gen Intel(R) Core(TM) i7-1360P, instruction set [SSE2|AVX|AVX2]
+Thread count: 12 physical cores, 16 logical processors, using up to 16 threads
+
+Non-default parameters:
+TimeLimit  600
+MIPGap  0.01
+MIPFocus  1
+DualReductions  0
+LogToConsole  0
+
+Academic license 2855642 - for non-commercial use only - registered to ra___@poli.ufrj.br
+Optimize a model with 4612 rows, 1478 columns and 11894 nonzeros (Min)
+Model fingerprint: 0x5bea5b7f
+Model has 19 linear objective coefficients
+Variable types: 1292 continuous, 186 integer (186 binary)
+Coefficient statistics:
+  Matrix range     [2e-03, 3e+02]
+  Objective range  [1e+03, 1e+04]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e-02, 3e+02]
+
+Presolve removed 1818 rows and 326 columns
+Presolve time: 0.03s
+Presolved: 2794 rows, 1152 columns, 9626 nonzeros
+Variable types: 975 continuous, 177 integer (177 binary)
+
+Root relaxation: objective 9.409248e+04, 2504 iterations, 0.26 seconds (0.23 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 94092.4850    0   50          - 94092.4850      -     -    0s
+     0     0 94105.2734    0   59          - 94105.2734      -     -    1s
+     0     0 94105.2734    0   58          - 94105.2734      -     -    1s
+     0     0 94153.2296    0   37          - 94153.2296      -     -    2s
+     0     0 94155.7124    0   37          - 94155.7124      -     -    2s
+     0     0 94155.7547    0   37          - 94155.7547      -     -    2s
+     0     0 94155.7665    0   36          - 94155.7665      -     -    2s
+     0     0 94155.7666    0   37          - 94155.7666      -     -    2s
+     0     0 94175.0650    0   44          - 94175.0650      -     -    2s
+     0     0 94176.8351    0   48          - 94176.8351      -     -    3s
+     0     0 94176.9466    0   41          - 94176.9466      -     -    3s
+     0     0 94176.9574    0   45          - 94176.9574      -     -    3s
+     0     0 94176.9579    0   46          - 94176.9579      -     -    3s
+     0     0 94197.8080    0   38          - 94197.8080      -     -    3s
+     0     0 94214.3562    0   39          - 94214.3562      -     -    3s
+     0     0 94214.9080    0   41          - 94214.9080      -     -    3s
+     0     0 94215.4242    0   42          - 94215.4242      -     -    3s
+     0     0 94215.4242    0   42          - 94215.4242      -     -    3s
+     0     0 94216.9524    0   45          - 94216.9524      -     -    3s
+     0     0 94216.9524    0   45          - 94216.9524      -     -    3s
+     0     2 94216.9524    0   45          - 94216.9524      -     -    9s
+    27    38 98692.5979    5   23          - 94233.2397      -   706   10s
+   404   414 99674.4098   33   25          - 94233.2397      -   374   15s
+   658   625 100074.478   56   28          - 94233.2397      -   291   20s
+   749   706 100268.577   61   25          - 94233.2397      -   282   25s
+   858   819 100578.743   68   26          - 94243.3846      -   283   30s
+   965   893 100651.585   72   22          - 94243.3846      -   277   35s
+  1068  1011 infeasible   78               - 94347.5141      -   268   40s
+  1199  1108 104722.903   82   20          - 94347.5141      -   264   45s
+  1257  1153 106043.662   86   27          - 94347.5141      -   264   51s
+  1305  1201 106308.541   90   21          - 94347.5141      -   262   56s
+  1342  1236 106417.520   91   17          - 94347.5141      -   263   60s
