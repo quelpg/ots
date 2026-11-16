@@ -35,7 +35,9 @@ mapa das análises e onde está cada código).
       Exclusões: linha 8-5 (sozinha), linha 38-65 e gerador da barra 10 (em conjunto)
 - [x] Validação do SC-DCOPF com pandapower, a posteriori (194/194 estados passam)
 - [x] OTS-SC-DCOPF com a formulação revisada (K = 0 reproduz o SC-DCOPF)
-- [ ] Confirmar a exclusão: no código é a linha **38-65**; no resumo do TCC aparece 38-37
+- [ ] Atualizar o texto da tese: as exclusões são 8-5 (sozinha), **38-65** e gerador da barra 10
+      (conjuntas). O 38-37 era do modelo antigo (corretivo, sem F^em)
+- [ ] Revisar as notas marcadas com `% [REVISAR]` em `metodologia tcc.txt`
 
 ### Análise A - sweep de K (`redispatch_with_exclusions`)
 
@@ -115,6 +117,33 @@ Código: `ots-sc-dcopf/full-ct-feasibility/core_screening.py` (vai virar noteboo
       ```
       INFEASIBLE → nenhuma topologia com ≤ 10 linhas abertas cobre o N-1 completo (é uma prova,
       porque o núcleo é uma relaxação); viável → K_min ≤ n_open e uma topologia para a sweep
+- [x] Notebook da Análise B criado: `full-ct-feasibility/ots-full-ct-feasibility.ipynb`
+      (checagens: reproduz K = 0 da A; N-1 completo inviável na topologia original)
+- [x] Rodada local 2026-11-13, modo `min_switching`, núcleo de 4 estados, 4 ≤ abertas ≤ 10,
+      1 h, 16 threads, NoRel 600 s: **undecided**. 174.806 nós, nenhuma topologia encontrada,
+      limite inferior parado em 4. Mesma causa da Análise A: a relaxação do big-M é fraca, e mais
+      tempo provavelmente não resolve
+- [ ] **Decidir o método de busca** (ler os artigos antes):
+  - A. Benders combinatório: mestre só com z + subproblema LP com z fixo, cortes pelo IIS.
+    Exato (prova inviabilidade); risco: muitas iterações. Codato & Fischetti (2006)
+  - B. Metaheurística (GA, SA, tabu) com avaliação por LP: acha soluções, nunca prova
+  - C. Formulação baseada em ciclos: exata e forte, mas trabalhosa. Kocuk et al. (2016)
+  - D. Heurísticas por sensibilidade/duais (ranking de linhas candidatas): Fuller et al. (2012),
+    Ruiz et al. (2012). Pode ser combinada com A (Benders só nas candidatas)
+  - Escolher as candidatas por critério reproduzível (linhas sobrecarregadas nos estados críticos
+    + vizinhas a 1–2 barras + linhas de soluções boas conhecidas), não só pelo congestionamento
+  - Alternativa de escopo: B só com as contingências de linha (8-5, 38-65) e/ou medir quanto o
+    OTS reduz a violação (já se chegou a 0,021 pu ≈ 2 MW com 18 abertas). Combinar com a orientação
+  - **Decisão 2026-11-14: D (ranking), exigindo viabilidade.** O núcleo nunca passou de 4 cenários,
+    então o gargalo é o número de linhas candidatas, não o de contingências. Plano:
+    1. LP com folgas (feasRelax) no núcleo de 4 cenários, topologia completa → preços da violação
+    2. Índice por linha: fluxo × diferença de preço entre as pontas (lógica do Fuller, com os
+       preços da violação, não os de custo) → top 20–30 candidatas
+    3. `--min-switching` com `set_LS` = só as candidatas (arquivo novo, sem mexer no original)
+    4. Se achar topologia: checar o N-1 completo pelo LP (o próprio core screening faz isso)
+    - Com L^S reduzido, "inviável" não é prova para o sistema completo (a prova de K ≤ 3 já existe)
+    - Minimizar a violação fica só como plano reserva, se a viabilidade não sair
+    - O mesmo código, com os preços de custo do K = 0, serve para acelerar a Análise A
 - [ ] Achar K_min (ou provar que o N-1 completo é inviável para qualquer topologia)
 - [ ] Rodar o OTS (objetivo de custo) em K_min, K_min + 1, ... com warm start a partir dela
 - [ ] Comparar com a Análise A no mesmo K (custo de cobrir as 3 contingências extras)

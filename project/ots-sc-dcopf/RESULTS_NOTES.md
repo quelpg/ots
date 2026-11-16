@@ -96,6 +96,17 @@ For K ≥ 3 the reported `runtime_s` is the last run only. The total search was 
 - **Cost is non-increasing in K.** ✔ (Only after the chained warm start, see §1.4.)
 - K1 ⊂ K2 (nested, both proven optimal). From K4 on the solutions are nested again
   (K4 ⊂ K5 ⊂ … ⊂ K8).
+- **Do not report the nesting as a property of the problem.** OTS optima need not be nested,
+  and part of it comes from the warm start:
+  - K1 ⊂ K2 is real (both proven optimal).
+  - K4 was found **independently** of K3: the cluster run (warm start from K1 only) reached the
+    same K4 set. So "K4 contains the K2 lines" is evidence of a common core (64-65, 77-80).
+  - K5–K10 started from K − 1 (chained warm start) and are not proven optimal, so "K = K − 1
+    plus one line" is at least partly an effect of the starting point. The cluster run without
+    the chain found different (worse) sets for K5–K10.
+  - The saved K3 (92-94) is not nested; the improved K3 (68-69, §1.5) is.
+  - In the thesis: "the solutions share a core of openings (64-65, 77-80), and larger K add
+    lines to it", not "the solutions are nested".
 - No island check has been done on these topologies yet (§5.3).
 
 ### 1.3 Interpretation

@@ -12,6 +12,14 @@
 
 ## 1. N-1 vulnerability diagnostic
 
+> **Legacy model (corrective redispatch, no F^em, no angle limits). Superseded.** With the current
+> model (preventive, F^em = 1.15 F^max, alpha, ±0.6 rad), Section 10 of `sc-dcopf.ipynb` gives a
+> different set: **line 8-5** (infeasible alone), **line 38-65** and the **bus-10 generator**
+> (joint conflicts: feasible alone, infeasible together with the others). Line 38-37 is no longer
+> a problem, most likely because of the 15% emergency margin. The joint test adds the
+> contingencies one at a time, so the excluded set depends on that order: it is *a* minimal set,
+> not the only one. Use the current set (`EXCLUDE` in the notebooks) in the thesis.
+
 See `results/vulnerability/`. Each contingency is solved **in isolation** (one DCOPF per
 state), giving the **complete and deterministic** picture of which ones fail — unlike the IIS,
 which only reveals one conflict at a time.
