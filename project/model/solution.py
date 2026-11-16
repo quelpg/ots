@@ -15,7 +15,8 @@ LOG_NAME = "ots"
 
 # ----------------------------------------------------------------------------- logging
 def get_logger(out_dir=None, name=LOG_NAME):
-    """Console + `<out_dir>/run.log` (same messages). Calling it again adds the file handler."""
+    """Console + `<out_dir>/run.log` (same messages). The log is appended to, with a separator
+    per run, so a new run never erases the history of earlier runs in the same folder."""
     log = logging.getLogger(name)
     log.setLevel(logging.INFO)
     if not any(isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler)
@@ -27,7 +28,10 @@ def get_logger(out_dir=None, name=LOG_NAME):
         os.makedirs(out_dir, exist_ok=True)
         path = os.path.abspath(os.path.join(out_dir, "run.log"))
         if not any(isinstance(h, logging.FileHandler) and h.baseFilename == path for h in log.handlers):
-            fh = logging.FileHandler(path, mode="w", encoding="utf-8")
+            new_file = not os.path.exists(path)
+            fh = logging.FileHandler(path, mode="a", encoding="utf-8")
+            if not new_file:
+                fh.stream.write("\n" + "#" * 100 + "\n")             # separator between runs
             fh.setFormatter(logging.Formatter("%(asctime)s  %(message)s", "%Y-%m-%d %H:%M:%S"))
             log.addHandler(fh)
     return log

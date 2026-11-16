@@ -91,8 +91,10 @@ abaixo se referem a ele.
       (1.054 → ~50 $/h); nenhuma linha no limite no caso base do SC-DCOPF
 - [ ] Analisar as linhas abertas por cada critério (carregamento, μ, PTDF própria): o TD escolhe
       linhas no limite em contingência + linhas leves em volta; LP/PD só linhas leves
-- [ ] CS1 (custo, λ ≤ λ_max): heurística em todos os λ da grade; MILP com warm start em 2–3 λ
-      escolhidos pela grade
+- [x] CS1: λ = 0,70 / 0,80 / 0,85; heurística (5 critérios): PW e TD recuperam 51% / 42% / 21% do
+      prêmio (LP e PD 40% / 15% / 6%); `cs1-cost/sweep_k.py` testado (warm start da heurística)
+- [ ] CS1: MILP com warm start (K = 1..8 / 1..10 / 1..10, 30 min por K), no PowerShell
+- [ ] CS1: figura custo × K (MILP, heurística, % do prêmio)
 - [ ] CS2 (recuperar a viabilidade, λ > λ_max; ex.: 0,90 / 0,95 / 1,0): LP relaxado (folgas nos
       limites de fluxo, min violação) → heurística com os duais desse LP até a violação zerar (K_h,
       viabilidade provada pelo LP sem folgas) → MILP de chaveamento mínimo com warm start (K menor e

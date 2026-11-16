@@ -1,0 +1,152 @@
+2026-11-16 14:07:30  sequential.py --load-factor 0.70 --out-root cs1-cost/results
+2026-11-16 14:07:30  output -> cs1-cost/results\matpower\redispatch_only\contingencies\lambda0.700\heuristic
+2026-11-16 14:07:30  source = matpower | base_mva = 100 MVA | slack bus = 69
+2026-11-16 14:07:30  |N| = 118 buses | |G| = 19 generators | |L| = 186 branches (9 radial)
+2026-11-16 14:07:30  nominal load = 4,242.0 MW | total Pmax = 6,515.0 MW
+2026-11-16 14:07:30  formulation = redispatch_only | contingencies = all (contingencies) | excluded: none
+2026-11-16 14:07:30  |C_T| = 177 branches | |C_G| = 19 generators | |C| = 197 states (1 base + 196 contingencies)
+2026-11-16 14:07:31  model: 173,167 rows, 63,818 columns (0 binary), 542,924 nonzeros | built in 1.7 s
+2026-11-16 14:07:31  theta in [-0.6, 0.6] rad | M_l in [2.9, 296.3] pu | F^em = 1.15 F^max
+2026-11-16 14:07:32  K=0 cost $63,568.33/h; criteria at K=0 saved to criteria_K0.csv
+2026-11-16 14:07:32  LP0: start K=0 cost $63,568.33/h
+2026-11-16 14:07:32  LP0: no candidate left (all criteria >= 0 or tried)
+2026-11-16 14:07:32  LP0: 0 openings, 1 LPs, 0 s
+2026-11-16 14:07:33  LP: start K=0 cost $63,568.33/h
+2026-11-16 14:07:34    reject    30-17: LP infeasible
+2026-11-16 14:07:36    LP K=1: open    23-32 -> $63,526.68/h | 3 LPs, 4 s
+2026-11-16 14:07:38    reject    14-15: LP infeasible
+2026-11-16 14:07:39    reject    13-15: LP infeasible
+2026-11-16 14:07:40    reject    12-14: LP infeasible
+2026-11-16 14:07:41    reject    11-13: LP infeasible
+2026-11-16 14:07:42    LP K=2: open    27-32 -> $63,159.42/h | 8 LPs, 10 s
+2026-11-16 14:07:43    reject   27-115: LP infeasible
+2026-11-16 14:07:44    reject    27-28: LP infeasible
+2026-11-16 14:07:46    reject   32-114: LP infeasible
+2026-11-16 14:07:47    reject    28-29: LP infeasible
+2026-11-16 14:07:49    reject    92-94: cost $63,256.65/h does not improve
+2026-11-16 14:07:50    LP K=3: open    94-96 -> $62,952.42/h | 14 LPs, 17 s
+2026-11-16 14:07:51    reject    94-95: LP infeasible
+2026-11-16 14:07:52    reject    93-94: LP infeasible
+2026-11-16 14:07:54    reject    92-93: LP infeasible
+2026-11-16 14:07:55    reject    95-96: LP infeasible
+2026-11-16 14:07:56    reject    17-31: cost $63,109.08/h does not improve
+2026-11-16 14:07:58    reject   32-113: LP infeasible
+2026-11-16 14:07:59    LP K=4: open    69-77 -> $62,826.94/h | 21 LPs, 26 s
+2026-11-16 14:07:59    reject    75-77: cost $63,164.01/h does not improve
+2026-11-16 14:08:00    LP K=5: open    37-40 -> $62,715.24/h | 23 LPs, 28 s
+2026-11-16 14:08:01    reject    37-39: LP infeasible
+2026-11-16 14:08:01    reject    76-77: LP infeasible
+2026-11-16 14:08:02    reject    39-40: LP infeasible
+2026-11-16 14:08:03    reject    29-31: LP infeasible
+2026-11-16 14:08:06    LP K=6: open    82-96 -> $62,637.44/h | 28 LPs, 33 s
+2026-11-16 14:08:07    LP K=7: open    89-92 -> $62,606.59/h | 29 LPs, 34 s
+2026-11-16 14:08:07    reject    80-96: cost $62,607.90/h does not improve
+2026-11-16 14:08:09    reject    96-97: LP infeasible
+2026-11-16 14:08:09    reject    80-97: LP infeasible
+2026-11-16 14:08:11    reject  114-115: LP infeasible
+2026-11-16 14:08:13    reject    89-92: cost $62,623.76/h does not improve
+2026-11-16 14:08:14    LP K=8: open    89-90 -> $62,598.86/h | 35 LPs, 41 s
+2026-11-16 14:08:14    LP K=9: open    49-51 -> $62,586.53/h | 36 LPs, 42 s
+2026-11-16 14:08:14    LP K=10: open    49-54 -> $62,577.15/h | 37 LPs, 42 s
+2026-11-16 14:08:14  LP: 10 openings, 37 LPs, 42 s, final cost $62,577.15/h
+2026-11-16 14:08:17  PD: start K=0 cost $63,568.33/h
+2026-11-16 14:08:18    reject    13-15: LP infeasible
+2026-11-16 14:08:19    reject    14-15: LP infeasible
+2026-11-16 14:08:20    reject    12-14: LP infeasible
+2026-11-16 14:08:22    PD K=1: open    23-32 -> $63,526.68/h | 5 LPs, 7 s
+2026-11-16 14:08:22    PD K=2: open    31-32 -> $63,437.24/h | 6 LPs, 7 s
+2026-11-16 14:08:23    reject    28-29: LP infeasible
+2026-11-16 14:08:25    reject    30-17: LP infeasible
+2026-11-16 14:08:28    reject   32-113: LP infeasible
+2026-11-16 14:08:29    reject   32-114: LP infeasible
+2026-11-16 14:08:31    reject    11-13: LP infeasible
+2026-11-16 14:08:32    reject    27-28: LP infeasible
+2026-11-16 14:08:34    PD K=3: open    27-32 -> $63,152.56/h | 13 LPs, 20 s
+2026-11-16 14:08:35    reject    29-31: LP infeasible
+2026-11-16 14:08:37    reject   27-115: LP infeasible
+2026-11-16 14:08:38    reject    17-31: LP infeasible
+2026-11-16 14:08:41    reject    92-94: cost $63,252.60/h does not improve
+2026-11-16 14:08:43    PD K=4: open    69-77 -> $63,059.08/h | 18 LPs, 28 s
+2026-11-16 14:08:43    reject    80-96: cost $63,160.14/h does not improve
+2026-11-16 14:08:44    reject    80-97: LP infeasible
+2026-11-16 14:08:45    PD K=5: open    94-96 -> $62,820.62/h | 21 LPs, 31 s
+2026-11-16 14:08:46    reject    93-94: LP infeasible
+2026-11-16 14:08:46    reject    92-93: LP infeasible
+2026-11-16 14:08:47    reject    75-77: cost $63,161.48/h does not improve
+2026-11-16 14:08:48    PD K=6: open    37-40 -> $62,711.69/h | 25 LPs, 33 s
+2026-11-16 14:08:48    reject    37-39: LP infeasible
+2026-11-16 14:08:50    reject    94-95: LP infeasible
+2026-11-16 14:08:51    reject    95-96: LP infeasible
+2026-11-16 14:08:52    reject    76-77: LP infeasible
+2026-11-16 14:08:54    reject    39-40: LP infeasible
+2026-11-16 14:08:55    reject  114-115: LP infeasible
+2026-11-16 14:09:00    PD K=7: open    64-65 -> $62,703.21/h | 32 LPs, 45 s
+2026-11-16 14:09:01    PD K=8: open    47-49 -> $62,690.95/h | 33 LPs, 47 s
+2026-11-16 14:09:01    reject    46-48: LP infeasible
+2026-11-16 14:09:03    PD K=9: open    82-96 -> $62,610.88/h | 35 LPs, 48 s
+2026-11-16 14:09:04    PD K=10: open    89-92 -> $62,580.56/h | 36 LPs, 49 s
+2026-11-16 14:09:04  PD: 10 openings, 36 LPs, 49 s, final cost $62,580.56/h
+2026-11-16 14:09:07  PW: start K=0 cost $63,568.33/h
+2026-11-16 14:09:08    reject    13-15: LP infeasible
+2026-11-16 14:09:09    reject    14-15: LP infeasible
+2026-11-16 14:09:10    PW K=1: open    15-17 -> $63,247.99/h | 4 LPs, 7 s
+2026-11-16 14:09:13    reject    23-25: cost $68,968.01/h does not improve
+2026-11-16 14:09:15    PW K=2: open    23-32 -> $63,118.12/h | 6 LPs, 11 s
+2026-11-16 14:09:17    reject   32-114: LP infeasible
+2026-11-16 14:09:18    PW K=3: open    31-32 -> $62,991.06/h | 8 LPs, 14 s
+2026-11-16 14:09:19    reject    28-29: LP infeasible
+2026-11-16 14:09:21    reject    25-27: LP infeasible
+2026-11-16 14:09:22    reject   32-113: LP infeasible
+2026-11-16 14:09:23    reject    27-28: LP infeasible
+2026-11-16 14:09:26    PW K=4: open   94-100 -> $62,651.44/h | 13 LPs, 22 s
+2026-11-16 14:09:27    PW K=5: open    77-80 -> $62,342.27/h | 14 LPs, 23 s
+2026-11-16 14:09:27    reject    77-80: cost $62,697.92/h does not improve
+2026-11-16 14:09:28    PW K=6: open    27-32 -> $62,324.68/h | 16 LPs, 24 s
+2026-11-16 14:09:30    reject    26-25: cost $76,948.72/h does not improve
+2026-11-16 14:09:31    PW K=7: open    37-40 -> $62,318.66/h | 18 LPs, 27 s
+2026-11-16 14:09:32    reject    37-39: LP infeasible
+2026-11-16 14:09:33    reject    17-31: LP infeasible
+2026-11-16 14:09:35    PW K=8: open    89-92 -> $62,317.33/h | 21 LPs, 31 s
+2026-11-16 14:09:36    reject   92-100: cost $62,398.71/h does not improve
+2026-11-16 14:09:37    reject    17-18: LP infeasible
+2026-11-16 14:09:38    reject    18-19: LP infeasible
+2026-11-16 14:09:40    PW K=9: open    89-90 -> $62,314.32/h | 25 LPs, 36 s
+2026-11-16 14:09:41    reject    89-92: cost $62,574.73/h does not improve
+2026-11-16 14:09:41    reject    89-90: LP infeasible
+2026-11-16 14:09:42    reject    11-13: LP infeasible
+2026-11-16 14:09:44    PW K=10: open    49-54 -> $62,313.92/h | 29 LPs, 40 s
+2026-11-16 14:09:44  PW: 10 openings, 29 LPs, 40 s, final cost $62,313.92/h
+2026-11-16 14:09:47  TD: start K=0 cost $63,568.33/h
+2026-11-16 14:09:47    TD K=1: open    15-17 -> $63,247.99/h | 2 LPs, 4 s
+2026-11-16 14:09:49    reject    23-25: cost $68,968.01/h does not improve
+2026-11-16 14:09:51    TD K=2: open   94-100 -> $62,904.42/h | 4 LPs, 7 s
+2026-11-16 14:09:52    TD K=3: open    77-80 -> $62,505.33/h | 5 LPs, 8 s
+2026-11-16 14:09:53    TD K=4: open    23-32 -> $62,382.40/h | 6 LPs, 9 s
+2026-11-16 14:09:54    reject    25-27: LP infeasible
+2026-11-16 14:09:56    reject    77-80: cost $62,817.24/h does not improve
+2026-11-16 14:09:57    reject    17-18: LP infeasible
+2026-11-16 14:10:00    reject    26-25: cost $75,964.22/h does not improve
+2026-11-16 14:10:02    TD K=5: open    27-32 -> $62,324.96/h | 11 LPs, 19 s
+2026-11-16 14:10:03    reject    37-39: LP infeasible
+2026-11-16 14:10:04    TD K=6: open    37-40 -> $62,318.95/h | 13 LPs, 21 s
+2026-11-16 14:10:06    reject    18-19: LP infeasible
+2026-11-16 14:10:07    reject    39-40: LP infeasible
+2026-11-16 14:10:09    TD K=7: open    17-31 -> $62,314.13/h | 16 LPs, 25 s
+2026-11-16 14:10:10    reject   17-113: LP infeasible
+2026-11-16 14:10:11    reject   32-113: LP infeasible
+2026-11-16 14:10:13    reject    11-13: LP infeasible
+2026-11-16 14:10:16    TD K=8: open    89-92 -> $62,312.58/h | 20 LPs, 32 s
+2026-11-16 14:10:16    reject   92-100: cost $62,394.58/h does not improve
+2026-11-16 14:10:18    TD K=9: open    89-90 -> $62,309.57/h | 22 LPs, 34 s
+2026-11-16 14:10:18    reject    89-90: LP infeasible
+2026-11-16 14:10:19    reject    89-92: cost $62,570.69/h does not improve
+2026-11-16 14:10:21    TD K=10: open    49-51 -> $62,308.67/h | 25 LPs, 37 s
+2026-11-16 14:10:21  TD: 10 openings, 25 LPs, 37 s, final cost $62,308.67/h
+2026-11-16 14:10:21  
+Summary by criterion:
+criterion  openings  best_cost  saving_pct  lp_solves  time_s
+      LP0         0   63568.33       0.000          1     0.0
+       LP        10   62577.15       1.559         37    42.0
+       PD        10   62580.56       1.554         36    49.4
+       PW        10   62313.92       1.973         29    39.8
+       TD        10   62308.67       1.982         25    37.2

@@ -216,6 +216,30 @@ def run_sequential(model, criterion, max_open, max_lp, log, export_root=None, mi
     return steps
 
 
+PATH_COLUMNS = ["criterion", "K", "opened", "branch_id", "cost", "milp_cost", "lp_solves", "time_s",
+                "states_with_islands", "open_lines"]
+
+
+def summarize(out, cost0):
+    """One row per criterion from every path_<criterion>.csv in the folder (also from earlier runs)."""
+    rows = []
+    for crit in CRITERIA:
+        f = os.path.join(out, f"path_{crit}.csv")
+        if not os.path.exists(f):
+            continue
+        try:
+            p = pd.read_csv(f)
+        except pd.errors.EmptyDataError:           # criterion that opened nothing
+            p = pd.DataFrame(columns=PATH_COLUMNS)
+        best = p.iloc[-1] if len(p) else None
+        cost = float(best["cost"]) if best is not None else cost0
+        rows.append({"criterion": crit, "openings": len(p), "best_cost": round(cost, 2),
+                     "saving_pct": round(100 * (1 - cost / cost0), 3),
+                     "lp_solves": int(best["lp_solves"]) if best is not None else 1,
+                     "time_s": float(best["time_s"]) if best is not None else 0.0})
+    return pd.DataFrame(rows)
+
+
 class _Quiet:
     """Logger stand-in that drops export messages (one per step would clutter the log)."""
     def info(self, *_):
@@ -293,19 +317,12 @@ def main(argv=None):
     criteria_table(model, sol0).to_csv(os.path.join(out, "criteria_K0.csv"), index=False)
     log.info(f"K=0 cost ${sol0.cost:,.2f}/h; criteria at K=0 saved to criteria_K0.csv")
 
-    summary = []
     for crit in args.criteria:
         steps = run_sequential(model, crit, args.max_open, args.max_lp, log,
                                export_root=None if args.no_export else out, milp_cost=milp,
                                forbid_contingency_islands=args.forbid_contingency_islands)
-        pd.DataFrame(steps).to_csv(os.path.join(out, f"path_{crit}.csv"), index=False)
-        best = steps[-1] if steps else None
-        summary.append({"criterion": crit, "openings": len(steps),
-                        "best_cost": best["cost"] if best else round(sol0.cost, 2),
-                        "saving_pct": round(100 * (1 - (best["cost"] if best else sol0.cost) / sol0.cost), 3),
-                        "lp_solves": best["lp_solves"] if best else 1,
-                        "time_s": best["time_s"] if best else 0.0})
-    tab = pd.DataFrame(summary)
+        pd.DataFrame(steps, columns=PATH_COLUMNS).to_csv(os.path.join(out, f"path_{crit}.csv"), index=False)
+    tab = summarize(out, sol0.cost)
     tab.to_csv(os.path.join(out, "summary_criteria.csv"), index=False)
     log.info("\nSummary by criterion:\n" + tab.to_string(index=False))
     model.dispose()
