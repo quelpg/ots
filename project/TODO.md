@@ -109,7 +109,9 @@ abaixo se referem a ele.
       (106.826,95 e 106.822,62). K = 8 igual ao MILP (106.784,01, mesmas 8 linhas)
 - [x] LP0 (Fuller sem N-1) nunca propõe linha: no SC-DCOPF os preços do caso base são todos iguais
       (nenhum limite do caso base ativo; o congestionamento vem das contingências)
-- [ ] Rodar os 5 critérios no benchmark (λ = 1, lista reduzida) → tabela MILP × heurística
+- [x] Rodar os 5 critérios no benchmark (λ = 1, lista reduzida): TD = MILP em K = 8 e melhor em K = 6, 7;
+      LP acerta K = 1 e para em 108.172,99; PW 107.960,12; PD 108.608,42 (PW/PD ilham 1 estado a
+      partir de 63-59); LP0 não abre nada. No Ruiz (sem N-1) o TD foi o pior: investigar por quê
 - [ ] Conferir as topologias de K = 6 e 7 no pandapower (passo V)
 - [ ] Revisar a adaptação de PD/PW ao N-1 (normalização por |f₀|, sinal da eq. 42)
 - [ ] Usar as topologias da heurística como warm start do MILP (`run_ots.py --warm-start-dir`)
