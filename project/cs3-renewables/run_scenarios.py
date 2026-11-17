@@ -6,7 +6,8 @@ load lambda x nominal load), three layers, as in the reference case:
   DCOPF (base case, network)          -> curtailment caused by the network in the base case
   SC-DCOPF (full N-1 list)            -> curtailment caused by the network and N-1 security
 Curtailment C = sum_r (Gbar_r - P_r,0) [MW]; only the total is reported (its split among units
-may not be unique). The SC-DCOPF solution of each case is saved (same files as model/run_ots.py).
+may not be unique). By type (layers): energy = no-network curtailment (ENE); congestion = DCOPF -
+energy (REL, transmission bottleneck); security = SC-DCOPF - DCOPF (CNF, N-1 margin). The SC-DCOPF solution of each case is saved (same files as model/run_ots.py).
 
 Output: <out-root>/matpower/redispatch_only/summary_scenarios_lambda<l>.csv and run.log.
 """
@@ -26,11 +27,11 @@ from model.solution import curtailment, export, get_logger, read_solution     # 
 from model.states import EXCLUSIONS, build_states                              # noqa: E402
 
 SCENARIOS = ["concentrated", "distributed"]
-LEVELS = [0.10, 0.20, 0.30]
+LEVELS = [0.10, 0.20, 0.30, 0.40, 0.50]
 
 EPILOG = """examples (from project/):
-  python cs3-renewables/run_scenarios.py                                   # lambda 0.80, both scenarios, 10/20/30%
-  python cs3-renewables/run_scenarios.py --levels 0.10 0.20 0.30 0.40
+  python cs3-renewables/run_scenarios.py                                   # lambda 0.80, both scenarios, 10-50%
+  python cs3-renewables/run_scenarios.py --levels 0.20 0.30
 """
 
 
@@ -45,7 +46,7 @@ def main(argv=None):
     ap.add_argument("--load-factor", type=float, default=0.80, help="lambda (default: 0.80)")
     ap.add_argument("--scenarios", nargs="+", default=SCENARIOS, help=f"(default: {' '.join(SCENARIOS)})")
     ap.add_argument("--levels", type=float, nargs="+", default=LEVELS,
-                    help="penetration levels, share of the load (default: 0.10 0.20 0.30)")
+                    help="penetration levels, share of the load (default: 0.10 ... 0.50)")
     ap.add_argument("--formulation", default="redispatch_only", choices=list(EXCLUSIONS),
                     help="redispatch_only = full contingency list (default)")
     ap.add_argument("--out-root", default=os.path.join(ROOT, "cs3-renewables", "results"),
@@ -84,6 +85,11 @@ def main(argv=None):
                 m.dispose()
             d, c = row["dcopf_usd_h"], row["scdcopf_usd_h"]
             row["security_premium_usd_h"] = None if d is None or c is None else round(c - d, 2)
+            # curtailment by type (layers): energy (no network), congestion (REL), security (CNF)
+            dcu, scu = row.get("dcopf_curtailment_mw"), row.get("scdcopf_curtailment_mw")
+            row["curt_energy_mw"] = round(ud_curt, 2)
+            row["curt_congestion_mw"] = None if dcu is None else round(dcu - ud_curt, 2)
+            row["curt_security_mw"] = None if dcu is None or scu is None else round(scu - dcu, 2)
             rows.append(row)
             log.info(f"{name:20s} {row['penetration_pct']:3d}% ({row['renewable_available_mw']:7.1f} MW): "
                      f"unconstrained {ud_cost:,.0f} (curt {ud_curt:.0f}) | DCOPF {d} (curt {row['dcopf_curtailment_mw']}) | "

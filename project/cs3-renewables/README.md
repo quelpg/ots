@@ -28,6 +28,11 @@ python cs3-renewables/electrical_distance.py           # ranking of the buses by
 python cs3-renewables/run_scenarios.py                 # K = 0: unconstrained / DCOPF / SC-DCOPF per scenario and level
 # any script of the project takes --renewables <scenario> --penetration <share>, e.g.
 python heuristics/sequential.py --load-factor 0.80 --renewables concentrated --penetration 0.20 --out-root cs3-renewables/results
+# curtailment by type (energy / congestion / security) for every saved topology of a case -> decomposition.csv
+python cs3-renewables/decompose.py --renewables concentrated --penetration 0.30
+# binding flow limits, duals, interconnection flows and renewable output per bus on one topology -> diagnostics/
+python cs3-renewables/binding_constraints.py --renewables concentrated --penetration 0.30
+python cs3-renewables/binding_constraints.py --renewables concentrated --penetration 0.30 --topology heuristic/TD/K10
 ```
 
 Results go to `lambda0.800_ren-<scenario>_p<pct>/` folders.
