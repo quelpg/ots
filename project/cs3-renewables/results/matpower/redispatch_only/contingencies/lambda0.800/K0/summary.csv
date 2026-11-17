@@ -3,7 +3,7 @@ base_cost_usd_per_h,81401.76
 best_bound_usd_per_h,81401.76
 mip_gap,0.0
 solver_status,OPTIMAL
-runtime_s,1.0
+runtime_s,1.1
 load_factor,0.8
 total_load_mw,3393.6
 total_generation_mw,3393.6

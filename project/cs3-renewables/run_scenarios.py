@@ -9,7 +9,8 @@ Curtailment C = sum_r (Gbar_r - P_r,0) [MW]; only the total is reported (its spl
 may not be unique). By type (layers): energy = no-network curtailment (ENE); congestion = DCOPF -
 energy (REL, transmission bottleneck); security = SC-DCOPF - DCOPF (CNF, N-1 margin). The SC-DCOPF solution of each case is saved (same files as model/run_ots.py).
 
-Output: <out-root>/matpower/redispatch_only/summary_scenarios_lambda<l>.csv and run.log.
+Output: <out-root>/matpower/redispatch_only/summary_scenarios_lambda<l>.csv and run.log. Rows of
+scenarios already in the summary and not run this time are kept (the scenarios run are replaced).
 """
 
 import argparse
@@ -26,12 +27,13 @@ from model.data import add_renewables, case_tag, load_system                   #
 from model.solution import curtailment, export, get_logger, read_solution     # noqa: E402
 from model.states import EXCLUSIONS, build_states                              # noqa: E402
 
-SCENARIOS = ["concentrated", "distributed"]
+SCENARIOS = ["concentrated", "distributed", "regional_c", "regional_a", "near_control"]
 LEVELS = [0.10, 0.20, 0.30, 0.40, 0.50]
 
 EPILOG = """examples (from project/):
-  python cs3-renewables/run_scenarios.py                                   # lambda 0.80, both scenarios, 10-50%
+  python cs3-renewables/run_scenarios.py                                   # lambda 0.80, all 5 scenarios, 10-50%
   python cs3-renewables/run_scenarios.py --levels 0.20 0.30
+  python cs3-renewables/run_scenarios.py --scenarios regional_c regional_a near_control
 """
 
 
@@ -95,7 +97,12 @@ def main(argv=None):
                      f"unconstrained {ud_cost:,.0f} (curt {ud_curt:.0f}) | DCOPF {d} (curt {row['dcopf_curtailment_mw']}) | "
                      f"SC-DCOPF {c} (curt {row['scdcopf_curtailment_mw']})")
     tab = pd.DataFrame(rows)
-    tab.to_csv(os.path.join(out, f"summary_scenarios_lambda{lam:.3f}.csv"), index=False)
+    path = os.path.join(out, f"summary_scenarios_lambda{lam:.3f}.csv")
+    if os.path.exists(path):              # keep the rows of the scenarios not run this time
+        old = pd.read_csv(path)
+        old = old[~old["scenario"].isin(tab["scenario"])]
+        tab = pd.concat([old, tab], ignore_index=True)
+    tab.to_csv(path, index=False)
     pd.set_option("display.width", 250)
     log.info("\n" + tab.to_string(index=False))
     return 0

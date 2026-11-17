@@ -1,0 +1,4 @@
+state,state_desc,branch_id,label,f_mw,limit_mw,mu_usd_mwh
+0,base case,29,23-24,158.0,158.0,5.4178
+0,base case,108,24-70,72.0,72.0,110.2345
+0,base case,127,77-82,-141.0,141.0,-0.6671

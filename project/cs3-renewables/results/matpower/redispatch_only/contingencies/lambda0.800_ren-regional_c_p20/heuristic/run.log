@@ -1,0 +1,172 @@
+2026-11-16 22:58:34  sequential.py --load-factor 0.80 --renewables regional_c --penetration 0.20 --out-root cs3-renewables/results
+2026-11-16 22:58:34  output -> cs3-renewables/results\matpower\redispatch_only\contingencies\lambda0.800_ren-regional_c_p20\heuristic
+2026-11-16 22:58:34  source = matpower | base_mva = 100 MVA | slack bus = 69
+2026-11-16 22:58:34  |N| = 118 buses | |G| = 25 generators | |L| = 186 branches (9 radial)
+2026-11-16 22:58:34  nominal load = 4,242.0 MW | conventional Pmax = 6,515.0 MW
+2026-11-16 22:58:34  renewables: scenario 'regional_c', penetration 20% -> 6 units, 678.7 MW available at buses [82, 83, 85, 92, 94, 96]
+2026-11-16 22:58:34  formulation = redispatch_only | contingencies = all (contingencies) | excluded: none
+2026-11-16 22:58:34  |C_T| = 177 branches | |C_G| = 25 generators (6 renewable) | |C| = 203 states (1 base + 202 contingencies)
+2026-11-16 22:58:36  model: 179,659 rows, 104,732 columns (0 binary), 638,744 nonzeros | built in 1.2 s
+2026-11-16 22:58:36  theta in [-0.6, 0.6] rad | M_l in [2.9, 296.3] pu | F^em = 1.15 F^max
+2026-11-16 22:58:37  K=0 cost $67,872.20/h
+2026-11-16 22:58:37  LP0: start K=0 cost $67,872.20/h
+2026-11-16 22:58:37  LP0: no candidate left (all criteria >= 0 or tried)
+2026-11-16 22:58:37  LP0: 0 openings, 1 LPs, 0 s, final cost $67,872.20/h
+2026-11-16 22:58:37  LP: start K=0 cost $67,872.20/h
+2026-11-16 22:58:40    reject    30-17: LP infeasible
+2026-11-16 22:58:42    reject    23-32: cost $68,717.56/h does not improve
+2026-11-16 22:58:43    LP K=1: open    69-77 -> $67,153.05/h | 4 LPs, 6 s
+2026-11-16 22:58:44    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 22:58:44    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 22:58:44    reject    12-14: isolates load or generation in a contingency state
+2026-11-16 22:58:47    LP K=2: open    68-69 -> $66,064.47/h | 5 LPs, 10 s
+2026-11-16 22:58:47    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 22:58:49    LP K=3: open    82-96 -> $65,742.59/h | 6 LPs, 12 s
+2026-11-16 22:58:50    reject    40-42: cost $66,102.91/h does not improve
+2026-11-16 22:58:50    reject    41-42: isolates load or generation in a contingency state
+2026-11-16 22:58:51    LP K=4: open    37-40 -> $65,742.42/h | 8 LPs, 14 s
+2026-11-16 22:58:52    reject    49-66: cost $66,956.86/h does not improve
+2026-11-16 22:58:54    reject    49-66: cost $66,956.86/h does not improve
+2026-11-16 22:58:56    LP K=5: open    31-32 -> $65,536.04/h | 11 LPs, 18 s
+2026-11-16 22:58:56    reject    27-28: isolates load or generation in a contingency state
+2026-11-16 22:58:56    reject   32-113: isolates load or generation in a contingency state
+2026-11-16 22:58:56    LP K=6: open    55-59 -> $65,486.42/h | 12 LPs, 19 s
+2026-11-16 22:58:57    reject    54-59: cost $65,488.50/h does not improve
+2026-11-16 22:58:59    LP K=7: open    56-59 -> $65,464.94/h | 14 LPs, 21 s
+2026-11-16 22:58:59    reject    37-39: isolates load or generation in a contingency state
+2026-11-16 22:59:00    reject    47-49: cost $65,505.88/h does not improve
+2026-11-16 22:59:02    reject    49-51: cost $65,481.87/h does not improve
+2026-11-16 22:59:03    LP K=8: open    49-54 -> $65,463.57/h | 17 LPs, 26 s
+2026-11-16 22:59:03    reject    28-29: isolates load or generation in a contingency state
+2026-11-16 22:59:04    reject    56-59: cost $65,940.61/h does not improve
+2026-11-16 22:59:04    reject    91-92: isolates load or generation in a contingency state
+2026-11-16 22:59:04    reject  100-101: isolates load or generation in a contingency state
+2026-11-16 22:59:04    reject    90-91: isolates load or generation in a contingency state
+2026-11-16 22:59:05    LP K=9: open   92-100 -> $65,446.29/h | 19 LPs, 28 s
+2026-11-16 22:59:07    reject   94-100: cost $65,783.82/h does not improve
+2026-11-16 22:59:08    reject     4-11: isolates load or generation in a contingency state
+2026-11-16 22:59:08    reject   32-114: isolates load or generation in a contingency state
+2026-11-16 22:59:08    reject   17-113: isolates load or generation in a contingency state
+2026-11-16 22:59:08    reject    34-36: isolates load or generation in a contingency state
+2026-11-16 22:59:09    reject    63-59: cost $65,505.47/h does not improve
+2026-11-16 22:59:10    LP K=10: open    61-62 -> $65,440.79/h | 22 LPs, 33 s
+2026-11-16 22:59:10  LP: 10 openings, 22 LPs, 33 s, final cost $65,440.79/h
+2026-11-16 22:59:18  PD: start K=0 cost $67,872.20/h
+2026-11-16 22:59:18    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 22:59:18    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 22:59:18    reject    12-14: isolates load or generation in a contingency state
+2026-11-16 22:59:20    PD K=1: open   94-100 -> $67,146.70/h | 2 LPs, 10 s
+2026-11-16 22:59:22    reject    23-32: cost $67,944.66/h does not improve
+2026-11-16 22:59:24    PD K=2: open    69-77 -> $66,777.78/h | 4 LPs, 13 s
+2026-11-16 22:59:25    reject    30-17: LP infeasible
+2026-11-16 22:59:25    reject    11-13: isolates load or generation in a contingency state
+2026-11-16 22:59:28    PD K=3: open    82-96 -> $66,318.05/h | 6 LPs, 17 s
+2026-11-16 22:59:28    PD K=4: open    49-69 -> $66,283.81/h | 7 LPs, 18 s
+2026-11-16 22:59:32    PD K=5: open    68-69 -> $65,915.60/h | 8 LPs, 22 s
+2026-11-16 22:59:32    reject    40-41: isolates load or generation in a contingency state
+2026-11-16 22:59:33    reject    40-42: cost $66,094.25/h does not improve
+2026-11-16 22:59:33    reject    39-40: isolates load or generation in a contingency state
+2026-11-16 22:59:33    reject    41-42: isolates load or generation in a contingency state
+2026-11-16 22:59:34    reject    37-40: cost $65,937.23/h does not improve
+2026-11-16 22:59:35    PD K=6: open    31-32 -> $65,690.66/h | 11 LPs, 25 s
+2026-11-16 22:59:35    reject    37-39: isolates load or generation in a contingency state
+2026-11-16 22:59:35    reject    27-28: isolates load or generation in a contingency state
+2026-11-16 22:59:36    reject   92-100: cost $65,903.17/h does not improve
+2026-11-16 22:59:36    reject    28-29: isolates load or generation in a contingency state
+2026-11-16 22:59:36    reject  100-101: isolates load or generation in a contingency state
+2026-11-16 22:59:36    reject    91-92: isolates load or generation in a contingency state
+2026-11-16 22:59:37    reject    65-66: cost $65,980.28/h does not improve
+2026-11-16 22:59:38    PD K=7: open    49-54 -> $65,676.82/h | 14 LPs, 28 s
+2026-11-16 22:59:38    reject    56-58: isolates load or generation in a contingency state
+2026-11-16 22:59:39    PD K=8: open    49-54 -> $65,655.56/h | 15 LPs, 28 s
+2026-11-16 22:59:42    reject    64-65: cost $65,721.44/h does not improve
+2026-11-16 22:59:42    reject   32-114: isolates load or generation in a contingency state
+2026-11-16 22:59:42    reject    90-91: isolates load or generation in a contingency state
+2026-11-16 22:59:44    PD K=9: open    49-51 -> $65,598.47/h | 17 LPs, 34 s
+2026-11-16 22:59:44    reject    50-57: isolates load or generation in a contingency state
+2026-11-16 22:59:44    reject    56-57: isolates load or generation in a contingency state
+2026-11-16 22:59:44    reject  101-102: isolates load or generation in a contingency state
+2026-11-16 22:59:44    PD K=10: open    62-66 -> $65,584.89/h | 18 LPs, 34 s
+2026-11-16 22:59:44  PD: 10 openings, 18 LPs, 34 s, final cost $65,584.89/h
+2026-11-16 22:59:49  PW: start K=0 cost $67,872.20/h
+2026-11-16 22:59:50    reject    14-15: isolates load or generation in a contingency state
+2026-11-16 22:59:50    reject    13-15: isolates load or generation in a contingency state
+2026-11-16 22:59:51    PW K=1: open    15-17 -> $67,406.31/h | 2 LPs, 7 s
+2026-11-16 22:59:53    reject    23-25: LP infeasible
+2026-11-16 22:59:54    PW K=2: open    69-77 -> $66,419.17/h | 4 LPs, 10 s
+2026-11-16 22:59:55    reject    83-84: isolates load or generation in a contingency state
+2026-11-16 22:59:55    PW K=3: open    77-82 -> $65,519.93/h | 5 LPs, 11 s
+2026-11-16 22:59:56    reject    23-32: cost $65,935.67/h does not improve
+2026-11-16 22:59:58    reject    80-96: cost $67,534.08/h does not improve
+2026-11-16 22:59:58    reject    19-20: isolates load or generation in a contingency state
+2026-11-16 22:59:59    reject    77-80: cost $65,940.76/h does not improve
+2026-11-16 23:00:02    PW K=4: open    68-69 -> $65,274.49/h | 9 LPs, 18 s
+2026-11-16 23:00:03    PW K=5: open    75-77 -> $64,549.60/h | 10 LPs, 19 s
+2026-11-16 23:00:04    reject    38-65: LP infeasible
+2026-11-16 23:00:08    reject    38-37: LP infeasible
+2026-11-16 23:00:11    reject    65-66: cost $64,903.97/h does not improve
+2026-11-16 23:00:14    PW K=6: open    64-65 -> $64,273.78/h | 14 LPs, 29 s
+2026-11-16 23:00:14    reject   75-118: isolates load or generation in a contingency state
+2026-11-16 23:00:14    reject    76-77: isolates load or generation in a contingency state
+2026-11-16 23:00:14    reject   76-118: isolates load or generation in a contingency state
+2026-11-16 23:00:14    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 23:00:14    reject    20-21: isolates load or generation in a contingency state
+2026-11-16 23:00:14    reject    22-23: isolates load or generation in a contingency state
+2026-11-16 23:00:14    reject    21-22: isolates load or generation in a contingency state
+2026-11-16 23:00:14    PW K=7: open    49-54 -> $64,240.69/h | 15 LPs, 30 s
+2026-11-16 23:00:15    PW K=8: open    49-54 -> $64,186.78/h | 16 LPs, 30 s
+2026-11-16 23:00:15    PW K=9: open    49-51 -> $63,977.37/h | 17 LPs, 31 s
+2026-11-16 23:00:16    reject    50-57: isolates load or generation in a contingency state
+2026-11-16 23:00:16    reject    56-57: isolates load or generation in a contingency state
+2026-11-16 23:00:17    reject    47-49: cost $64,065.78/h does not improve
+2026-11-16 23:00:17    reject    49-50: isolates load or generation in a contingency state
+2026-11-16 23:00:17    reject    91-92: isolates load or generation in a contingency state
+2026-11-16 23:00:18    reject    77-80: LP infeasible
+2026-11-16 23:00:20    reject    30-17: LP infeasible
+2026-11-16 23:00:20    reject    90-91: isolates load or generation in a contingency state
+2026-11-16 23:00:20    reject    79-80: isolates load or generation in a contingency state
+2026-11-16 23:00:23    PW K=10: open    34-37 -> $63,856.85/h | 21 LPs, 38 s
+2026-11-16 23:00:23  PW: 10 openings, 21 LPs, 38 s, final cost $63,856.85/h
+2026-11-16 23:00:28  TD: start K=0 cost $67,872.20/h
+2026-11-16 23:00:29    reject    23-25: LP infeasible
+2026-11-16 23:00:31    TD K=1: open    15-17 -> $67,406.31/h | 3 LPs, 8 s
+2026-11-16 23:00:32    TD K=2: open    77-82 -> $65,942.51/h | 4 LPs, 9 s
+2026-11-16 23:00:36    reject    65-68: cost $67,873.63/h does not improve
+2026-11-16 23:00:39    reject    80-96: cost $67,813.35/h does not improve
+2026-11-16 23:00:39    reject    26-25: isolates load or generation in a contingency state
+2026-11-16 23:00:40    reject    23-32: cost $66,216.99/h does not improve
+2026-11-16 23:00:42    TD K=3: open    68-69 -> $65,835.35/h | 8 LPs, 19 s
+2026-11-16 23:00:44    TD K=4: open    77-80 -> $65,641.32/h | 9 LPs, 21 s
+2026-11-16 23:00:45    reject    77-80: cost $70,278.28/h does not improve
+2026-11-16 23:00:48    reject    38-37: LP infeasible
+2026-11-16 23:00:51    reject    65-66: cost $65,950.74/h does not improve
+2026-11-16 23:00:51    reject    79-80: isolates load or generation in a contingency state
+2026-11-16 23:00:51    reject    78-79: isolates load or generation in a contingency state
+2026-11-16 23:00:51    reject    77-78: isolates load or generation in a contingency state
+2026-11-16 23:00:52    reject    22-23: isolates load or generation in a contingency state
+2026-11-16 23:00:52    reject    21-22: isolates load or generation in a contingency state
+2026-11-16 23:00:52    reject    20-21: isolates load or generation in a contingency state
+2026-11-16 23:00:52    reject    19-20: isolates load or generation in a contingency state
+2026-11-16 23:00:52    reject    76-77: isolates load or generation in a contingency state
+2026-11-16 23:00:54    reject    30-17: LP infeasible
+2026-11-16 23:00:57    reject    64-65: cost $65,676.28/h does not improve
+2026-11-16 23:00:59    TD K=5: open    75-77 -> $65,465.38/h | 15 LPs, 36 s
+2026-11-16 23:01:00    reject    69-77: cost $65,690.67/h does not improve
+2026-11-16 23:01:03    TD K=6: open    64-61 -> $65,367.32/h | 17 LPs, 40 s
+2026-11-16 23:01:03    reject   76-118: isolates load or generation in a contingency state
+2026-11-16 23:01:04    TD K=7: open    47-49 -> $65,244.19/h | 18 LPs, 41 s
+2026-11-16 23:01:05    TD K=8: open    49-51 -> $65,130.18/h | 19 LPs, 42 s
+2026-11-16 23:01:05    reject    49-50: isolates load or generation in a contingency state
+2026-11-16 23:01:07    TD K=9: open    34-37 -> $65,067.42/h | 20 LPs, 44 s
+2026-11-16 23:01:07    reject    35-37: isolates load or generation in a contingency state
+2026-11-16 23:01:07    reject    35-36: isolates load or generation in a contingency state
+2026-11-16 23:01:07    TD K=10: open    49-54 -> $64,987.41/h | 21 LPs, 45 s
+2026-11-16 23:01:08  TD: 10 openings, 21 LPs, 45 s, final cost $64,987.41/h
+2026-11-16 23:01:08  
+Summary by criterion:
+criterion  openings    best_cost  saving_pct  lp_solves  time_s
+      LP0         0 67872.195987       0.000          1     0.0
+       LP        10 65440.790000       3.582         22    33.1
+       PD        10 65584.890000       3.370         18    34.2
+       PW        10 63856.850000       5.916         21    38.4
+       TD        10 64987.410000       4.250         21    44.5
