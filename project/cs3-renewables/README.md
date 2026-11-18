@@ -52,9 +52,25 @@ python cs3-renewables/decompose.py --renewables concentrated --penetration 0.30
 python cs3-renewables/binding_constraints.py --renewables concentrated --penetration 0.30
 python cs3-renewables/binding_constraints.py --renewables concentrated --penetration 0.30 --topology heuristic/TD/K10
 python cs3-renewables/binding_constraints.py --renewables regional_a --penetration 0.50 --watch 43 44 53 108 110   # region A interconnection
+# single-line diagrams (A4 pages): 'Regions' + one page per scenario -> figures/ieee118_cs3_scenarios.drawio
+python preprocessing/single_line_diagram.py --layout regions     # base drawing with the regions apart (once)
+python cs3-renewables/scenario_diagram.py
+python cs3-renewables/scenario_diagram.py --landscape            # A4 landscape instead of portrait
+python cs3-renewables/scenario_diagram.py --preview cs3-renewables/results/diagram_preview   # + PNG previews
 ```
 
 Results go to `lambda0.800_ren-<scenario>_p<pct>/` folders.
+
+`scenario_diagram.py` reads `figures/ieee118_unifilar_regions.drawio` (the single-line diagram with
+the blocks of the regions moved apart; not modified) and draws one rectangle per region, A (1-32,
+113-115, 117), B (33-79, 116, 118) and C (80-112), the interconnection branches of A and C thicker in
+black and a renewable symbol (wind turbine + solar panel, illustrative: the scenarios do not set the
+technology) on each renewable bus. It checks that the branches crossing the region borders are
+exactly the ten interconnection branches and that the rectangles do not overlap. Each page is an A4
+sheet; each overlay is a draw.io layer (View > Layers); export each page as PDF/SVG from draw.io.
+The base drawing uses `--size large` (fonts and symbols x2, stretched vertically), so on A4 portrait
+bus numbers print at ~7.7 pt. For every page the script prints an overlap check (symbols / texts that
+overlap, and texts / symbols crossed by a line); `--preview` draws the pages at true A4 size.
 
 ## Results without switching (K = 0, λ = 0.80, 2026-11-16)
 

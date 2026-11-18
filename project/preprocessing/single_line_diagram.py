@@ -14,10 +14,18 @@ connectors that leave a bar from its top or bottom edge, towards the other bus.
 Cell ids are stable (bus_<n>, br_<branch_id>, gen_<gen_id>, load_<n>), so per-case
 highlighting can later be applied to this same file by id.
 
-Output: figures/ieee118_unifilar.drawio
-Run from anywhere:  python preprocessing/single_line_diagram.py
+--layout regions moves the blocks of the three CS3 regions apart so that each one fits in its own
+rectangle (internal layout of each region unchanged): region A stays on the left, region B is
+shifted right, region C is shifted right and down, below region B. Regions (methodology guide):
+A = 1-32, 113-115, 117; C = 80-112; B = all other buses.
+
+Output: figures/ieee118_unifilar.drawio (classic) or figures/ieee118_unifilar_regions.drawio
+Run from anywhere:
+  python preprocessing/single_line_diagram.py
+  python preprocessing/single_line_diagram.py --layout regions
 """
 
+import argparse
 import base64
 import xml.etree.ElementTree as ET
 from collections import defaultdict
@@ -30,6 +38,50 @@ RAW = ROOT / "data" / "matpower"
 PROC = ROOT / "processed" / "matpower"
 POSITIONS = Path(__file__).resolve().parent / "ieee118_bus_positions.csv"
 OUT = ROOT / "figures" / "ieee118_unifilar.drawio"
+OUT_REGIONS = ROOT / "figures" / "ieee118_unifilar_regions.drawio"
+
+# CS3 regions (methodology guide, item 14); B = every other bus
+REGION_A = set(range(1, 33)) | {113, 114, 115, 117}
+REGION_C = set(range(80, 113))
+REGION_GAP = 40                 # gap between region blocks (reference-image px; vertical: x SIZE,
+                                # since generators and loads above / below the bars grow with it)
+
+
+# region rectangles drawn by cs3-renewables/scenario_diagram.py (x SIZE): margin around the
+# bus boxes and a band on top for the name; the blocks are kept this far apart
+REGION_PAD, REGION_LABEL_H, REGION_SPACE = 28, 44, 30
+# --layout regions only: buses moved by hand (reference px) because a long vertical branch leg
+# ran through them: 118 (leg of 69-75), 98 (80-97), 116 (68-81), 100 (103-104). Checked with the overlap check
+# of cs3-renewables/scenario_diagram.py.
+REGION_NUDGE = {118: (20, 0), 98: (25, 0), 116: (-25, 0), 103: (30, 0)}
+SEPARATE_REGIONS = False        # set by main() for --layout regions
+
+
+def region(bus):
+    return "A" if bus in REGION_A else "C" if bus in REGION_C else "B"
+
+
+def separate_regions(xy, lengths, has_gen, has_load):
+    """Shift region B right of A and region C right of A and below B, on the final bus boxes,
+    so that the three region rectangles (with margin and name band) do not overlap."""
+    pad, band = REGION_PAD * SIZE, REGION_LABEL_H * SIZE
+    def ext(rg):
+        bx = [bus_box(b, xy, lengths, has_gen, has_load) for b in xy if region(b) == rg]
+        return (min(v[0] for v in bx), min(v[1] for v in bx),
+                max(v[2] for v in bx), max(v[3] for v in bx))
+    a, b = ext("A"), ext("B")
+    c = ext("C")
+    dx = max(0.0, a[2] + 2 * pad + REGION_SPACE - min(b[0], c[0]))
+    for bus in xy:
+        if region(bus) != "A":
+            xy[bus][0] += dx
+    b, c = ext("B"), ext("C")
+    dy = max(0.0, b[3] + 2 * pad + band + REGION_SPACE - c[1])
+    for bus in xy:
+        if region(bus) == "C":
+            xy[bus][1] += dy
+    print(f"Regions kept apart on the final boxes: B and C +{dx:.0f} px right, "
+          f"C +{dy:.0f} px down")
 
 # --- drawing parameters ---
 # Sized for a printed page: the whole drawing is ~2500 px wide, so on a landscape A4 text
@@ -54,6 +106,35 @@ FONT_GEN = 18                   # '~' inside the generator
 LABEL_W = 42                    # room reserved left of a bar for its number
 CLEARANCE = 14                  # min gap between the boxes of two buses
 LOAD_LABEL_H = 20               # room reserved below a load triangle for its value
+SIZE = 1.0                      # symbol / font factor (set by apply_size)
+TIDY = False                    # place texts and transformer symbols on free spots (large size)
+
+# --size large (default of --layout regions): fonts and symbols x2 and the drawing stretched
+# vertically, so that on an A4 sheet in portrait the bus numbers print at ~7 pt (normal: ~4 pt)
+SIZES = {"normal": (1.0, 4.6), "large": (2.0, 6.9)}       # (symbol factor, SCALE_Y)
+
+
+def legend_factor():
+    """Legend boxes and text scale by half the symbol factor (x1.5 for 'large')."""
+    return 1 + (SIZE - 1) / 2
+
+
+def apply_size(name):
+    """Scale fonts, symbols and the vertical spacing (module constants) for a size profile."""
+    global SIZE, SCALE_Y, BAR_H, GEN_D, GEN_GAP, LOAD_W, LOAD_H, TRAFO_W, TRAFO_H, LINE_W
+    global FONT_BUS, FONT_LOAD, FONT_GEN, LABEL_W, LOAD_LABEL_H, SLOT, TIDY
+    f, SCALE_Y = SIZES[name]
+    SIZE = f
+    TIDY = f != 1
+    BAR_H = round(10 * (1 + (f - 1) / 2))            # bars and lines grow by half the factor
+    LINE_W = 2 * (1 + (f - 1) / 2)
+    LINE_W = int(LINE_W) if LINE_W == int(LINE_W) else round(LINE_W, 1)
+    GEN_D, GEN_GAP = round(26 * f), round(10 * (1 + (f - 1) / 2))
+    LOAD_W, LOAD_H = round(18 * f), round(14 * f)
+    TRAFO_W, TRAFO_H = round(34 * f), round(20 * f)
+    FONT_BUS, FONT_LOAD, FONT_GEN = round(20 * f), round(17 * f), round(18 * f)
+    LABEL_W, LOAD_LABEL_H = round(42 * f), round(20 * f)
+    SLOT = round(20 * min(f, 1.3))
 
 KV_COLORS = {138.0: "#1F4E79", 345.0: "#C0392B", 161.0: "#D68910"}
 KV_OTHER = "#7D3C98"
@@ -94,24 +175,65 @@ def load_data():
     return buses, gens, branches, slack_bus
 
 
-def load_positions(buses):
+def region_shift(p):
+    """Move region B right of A, and region C right of A and below B (reference px)."""
+    p = p.astype({"x": float, "y": float})
+    half = p["length"] * SCALE_LEN / SCALE_X / 2           # bar half-length in reference px
+    label = LABEL_W / SCALE_X                              # bus number left of the bar
+    p["x0"], p["x1"] = p["x"] - half - label, p["x"] + half
+    p["r"] = p["bus"].map(region)
+    a, bc = p[p["r"] == "A"], p[p["r"] != "A"]
+    dx = a["x1"].max() + REGION_GAP - bc["x0"].min()
+    b, c = p[p["r"] == "B"], p[p["r"] == "C"]
+    dy = b["y"].max() - c["y"].min() + REGION_GAP * SIZE
+    p.loc[p["r"] != "A", "x"] += dx
+    p.loc[p["r"] == "C", "y"] += dy
+    for bus, (nx, ny) in REGION_NUDGE.items():
+        p.loc[p["bus"] == bus, "x"] += nx
+        p.loc[p["bus"] == bus, "y"] += ny
+    print(f"Layout 'regions': B and C shifted right by {dx:.1f}, C shifted down by {dy:.1f} "
+          f"(reference px)")
+    return p
+
+
+def load_positions(buses, layout="classic"):
     p = pd.read_csv(POSITIONS)
     missing = set(buses["bus"]) - set(p["bus"])
     assert not missing, f"Buses without a position in {POSITIONS.name}: {sorted(missing)}"
+    if layout == "regions":
+        p = region_shift(p)
     return {int(r.bus): (r.x * SCALE_X + MARGIN, r.y * SCALE_Y + MARGIN, r.length * SCALE_LEN)
             for r in p.itertuples(index=False)}
 
 
 # ------------------------------------------------------------------- attachment slots
-def spread(desired, left, right):
-    """Place sorted desired x positions inside [left, right] at least SLOT apart."""
+def spread(desired, left, right, widths=None):
+    """Place sorted desired x positions inside [left, right]: consecutive items at least SLOT
+    apart, or (w_i + w_j) / 2 apart when widths are given (tidy mode)."""
+    n = len(desired)
+    widths = widths or [SLOT] * n
+    gap = [max(SLOT, (widths[i] + widths[i + 1]) / 2) for i in range(n - 1)]
+    lo = [left + max(0, widths[i] / 2 - END_PAD) for i in range(n)]
+    hi = [right - max(0, widths[i] / 2 - END_PAD) for i in range(n)]
     pos = []
-    for d in desired:
-        pos.append(max(d, left, pos[-1] + SLOT if pos else left))
-    for i in range(len(pos) - 1, -1, -1):
-        upper = right if i == len(pos) - 1 else pos[i + 1] - SLOT
+    for i, d in enumerate(desired):
+        pos.append(max(d, lo[i], pos[-1] + gap[i - 1] if pos else lo[i]))
+    for i in range(n - 1, -1, -1):
+        upper = hi[i] if i == n - 1 else pos[i + 1] - gap[i]
         pos[i] = min(pos[i], upper)
     return pos
+
+
+def item_width(key, pd_mw, trafos=()):
+    """Room an attachment needs along its bar (tidy mode): generators, loads with their value
+    and transformer legs are wider than a plain branch end."""
+    if not TIDY:
+        return SLOT
+    if key[0] == "br":
+        return TRAFO_H + 10 if key[1] in trafos else SLOT
+    if key[0] == "gen":
+        return GEN_D + 8
+    return max(LOAD_W, text_size(f"{pd_mw[key[1]]:g}", FONT_LOAD)[0]) + 8
 
 
 def other_bus(key, bus, branches):
@@ -126,6 +248,8 @@ def bus_box(b, xy, lengths, has_gen, has_load):
     half = lengths[b] / 2
     up = BAR_H / 2 + (GEN_GAP + GEN_D if b in has_gen else 0)
     down = BAR_H / 2 + (GEN_GAP + LOAD_H + LOAD_LABEL_H if b in has_load else 0)
+    if TIDY:                                # the number is taller than a bare bar
+        up, down = max(up, 0.6 * FONT_BUS), max(down, 0.6 * FONT_BUS)
     return x - half - LABEL_W, y - up, x + half, y + down
 
 
@@ -185,6 +309,9 @@ def plan_bars(buses, gens, branches, pos):
     has_load = set(buses.loc[buses["pd_mw"] > 0, "bus"])
     xy = {b: [pos[b][0], pos[b][1]] for b in buses["bus"]}
     lengths = {b: max(pos[b][2], MIN_BAR) for b in xy}
+    pd_mw = dict(zip(buses["bus"], buses["pd_mw"]))
+    trafos = set(branches.loc[branches["is_trafo"], "branch_id"]) if "is_trafo" in branches \
+        else set()
 
     # Two passes: sides depend on positions, bar lengths on sides, positions on lengths
     for _ in range(2):
@@ -192,8 +319,14 @@ def plan_bars(buses, gens, branches, pos):
         for bus in xy:
             n = max(len(side_items[(bus, "top")]), len(side_items[(bus, "bottom")]))
             lengths[bus] = max(lengths[bus], (n - 1) * SLOT + 2 * END_PAD)
+            if TIDY:                      # wide attachments (generator, load + value)
+                for side in ("top", "bottom"):
+                    ws = [item_width(k, pd_mw, trafos) for k in side_items[(bus, side)]]
+                    lengths[bus] = max(lengths[bus], sum(ws) + 2 * END_PAD)
         # Push apart buses whose boxes (bar + number + generator + load) collide
         resolve_overlaps(xy, lengths, has_gen, has_load)
+    if SEPARATE_REGIONS:
+        separate_regions(xy, lengths, has_gen, has_load)
     boxes = [bus_box(b, xy, lengths, has_gen, has_load) for b in xy]
     dx = MARGIN - min(bx[0] for bx in boxes)
     dy = MARGIN - min(bx[1] for bx in boxes)
@@ -217,7 +350,8 @@ def plan_bars(buses, gens, branches, pos):
             # parallel circuits share a desired x; branch_id order keeps them side by side
             items.sort(key=lambda it: (it[1], str(it[0])))
             xs = spread([min(max(d, left + END_PAD), left + length - END_PAD) for _, d in items],
-                        left + END_PAD, left + length - END_PAD)
+                        left + END_PAD, left + length - END_PAD,
+                        [item_width(k, pd_mw, trafos) for k, _ in items] if TIDY else None)
             for (key, _), sx in zip(items, xs):
                 slot_x[key] = (sx - left, side)       # x relative to the bar's left edge
     obstacles = {b: bus_box(b, xy, lengths, has_gen, has_load) for b in xy}
@@ -238,7 +372,8 @@ def _hits_box(seg, box, pad=4):
     """Does an axis-aligned segment ((x0, y0), (x1, y1)) cross a bus box?"""
     (x0, y0), (x1, y1) = seg
     bx0, by0, bx1, by1 = box
-    bx0 += LABEL_W  # the number label may be crossed; the bar and symbols may not
+    if not TIDY:
+        bx0 += LABEL_W  # the number label may be crossed; the bar and symbols may not
     return (_overlap(x0, x1, bx0 - pad, bx1 + pad) > 0
             and _overlap(y0, y1, by0 - pad, by1 + pad) > 0)
 
@@ -246,8 +381,9 @@ def _hits_box(seg, box, pad=4):
 class Router:
     """Vertical-horizontal-vertical routes with a free horizontal track per branch."""
 
-    def __init__(self, obstacles):
+    def __init__(self, obstacles, zones=()):
         self.obstacles = obstacles
+        self.zones = list(zones)       # tidy: generator / load symbols, for every branch
         self.h = []      # placed horizontal segments (y, x0, x1)
         self.v = []      # placed vertical segments   (x, y0, y1)
 
@@ -275,6 +411,9 @@ class Router:
             for b, box in self.obstacles.items():
                 if b not in own and _hits_box(((x0, y0), (x1, y1)), box):
                     c += 40
+            for z in self.zones:
+                if _seg_hits(((x0, y0), (x1, y1)), z, pad=3):
+                    c += 150                 # worse than two lines overlapping (100)
         return c
 
     def place(self, segs):
@@ -323,7 +462,24 @@ class Router:
         return best[1], best[0]
 
 
-def route_branches(branches, bars, slot_x, obstacles):
+def symbol_zones(buses, gens, bars, slot_x):
+    """Generator circles and load triangles with their value (absolute boxes)."""
+    zones = []
+    for g in gens.itertuples(index=False):
+        left, top, _ = bars[g.bus]
+        cx = left + slot_x[("gen", g.gen_id)][0]
+        zones.append((cx - GEN_D / 2, top - GEN_GAP - GEN_D, cx + GEN_D / 2, top))
+    for bus in buses.itertuples(index=False):
+        if bus.pd_mw > 0:
+            left, top, _ = bars[bus.bus]
+            cx = left + slot_x[("load", bus.bus)][0]
+            w = max(LOAD_W, text_size(f"{bus.pd_mw:g}", FONT_LOAD)[0])
+            zones.append((cx - w / 2, top + BAR_H, cx + w / 2,
+                          top + BAR_H + GEN_GAP + LOAD_H + FONT_LOAD * 1.15))
+    return zones
+
+
+def route_branches(branches, bars, slot_x, obstacles, zones=()):
     """Return {branch_id: (track_y, points)} with absolute port coordinates."""
     def port_abs(key, bus):
         rel, side = slot_x[key]
@@ -336,7 +492,7 @@ def route_branches(branches, bars, slot_x, obstacles):
         pb, db = port_abs(("br", r.branch_id, "tgt"), r.to_bus)
         jobs.append((r.branch_id, r.from_bus, r.to_bus, pa, da, pb, db))
 
-    router = Router(obstacles)
+    router = Router(obstacles, zones)
     # Short spans first: they have the least freedom
     jobs.sort(key=lambda j: abs(j[3][0] - j[5][0]) + abs(j[3][1] - j[5][1]))
     routes, total = {}, 0.0
@@ -345,6 +501,175 @@ def route_branches(branches, bars, slot_x, obstacles):
         total += c
         routes[bid] = (pa, pb, yc)
     return routes, router
+
+
+# ------------------------------------------------------------- free spots (tidy mode)
+NUM_POS = ["left", "right", "top-left", "top-right", "bottom-left", "bottom-right",
+           "corner-top-left", "corner-bottom-left", "corner-top-right", "corner-bottom-right"]
+LOAD_POS = ["below", "right", "left"]
+TR_T = [0.5, 0.4, 0.6, 0.3, 0.7, 0.25, 0.75, 0.2, 0.8, 0.15, 0.85, 0.1, 0.9]
+
+
+def text_size(txt, font, bold=False):
+    """Approximate rendered size of a one-line label (draw.io default font)."""
+    return len(txt) * font * (0.62 if bold else 0.56), font * 1.15
+
+
+def number_box(pos, left, top, length, txt):
+    """Box of a bus number for a position around its bar (absolute coordinates)."""
+    w, h = text_size(txt, FONT_BUS, bold=True)
+    mid = top + BAR_H / 2
+    if pos == "left":
+        return left - 4 - w, mid - h / 2, left - 4, mid + h / 2
+    if pos == "right":
+        return left + length + 4, mid - h / 2, left + length + 4 + w, mid + h / 2
+    if pos.startswith("corner-"):                 # diagonal, outside a corner of the bar
+        _, vert, horiz = pos.split("-")
+        x0 = left - 2 - w if horiz == "left" else left + length + 2
+        y0 = top - h if vert == "top" else top + BAR_H
+        return x0, y0, x0 + w, y0 + h
+    vert, horiz = pos.split("-")
+    y0 = top - 2 - h if vert == "top" else top + BAR_H + 2
+    x0 = left if horiz == "left" else left + length - w
+    return x0, y0, x0 + w, y0 + h
+
+
+def number_style(pos):
+    if pos == "left":
+        return dict(labelPosition="left", verticalLabelPosition="middle", align="right",
+                    verticalAlign="middle", spacingRight="4")
+    if pos == "right":
+        return dict(labelPosition="right", verticalLabelPosition="middle", align="left",
+                    verticalAlign="middle", spacingLeft="4")
+    if pos.startswith("corner-"):
+        _, vert, horiz = pos.split("-")
+        return dict(labelPosition=horiz, verticalLabelPosition=vert,
+                    align="right" if horiz == "left" else "left",
+                    verticalAlign="bottom" if vert == "top" else "top", spacing="0",
+                    **({"spacingRight": "2"} if horiz == "left" else {"spacingLeft": "2"}))
+    vert, horiz = pos.split("-")
+    extra = {"spacingBottom": "2"} if vert == "top" else {"spacingTop": "2"}
+    return dict(labelPosition="center", verticalLabelPosition=vert, align=horiz,
+                verticalAlign="bottom" if vert == "top" else "top", spacing="0", **extra)
+
+
+def load_value_box(pos, tri, txt):
+    """Box of a load value around its triangle tri = (x0, y0, x1, y1)."""
+    w, h = text_size(txt, FONT_LOAD)
+    x0, y0, x1, y1 = tri
+    if pos == "below":
+        cx = (x0 + x1) / 2
+        return cx - w / 2, y1 - 2, cx + w / 2, y1 - 2 + h
+    cy = (y0 + y1) / 2
+    if pos == "right":
+        return x1 + 3, cy - h / 2, x1 + 3 + w, cy + h / 2
+    return x0 - 3 - w, cy - h / 2, x0 - 3, cy + h / 2
+
+
+def load_value_style(pos):
+    if pos == "below":
+        return dict(labelPosition="center", verticalLabelPosition="bottom", align="center",
+                    verticalAlign="top", spacingTop="-2")
+    if pos == "right":
+        return dict(labelPosition="right", verticalLabelPosition="middle", align="left",
+                    verticalAlign="middle", spacing="0", spacingLeft="3")
+    return dict(labelPosition="left", verticalLabelPosition="middle", align="right",
+                verticalAlign="middle", spacing="0", spacingRight="3")
+
+
+def point_at(pts, t):
+    """Point at fraction t of a polyline's length and whether that segment is horizontal."""
+    segs = list(zip(pts, pts[1:]))
+    lens = [abs(q[0] - p[0]) + abs(q[1] - p[1]) for p, q in segs]
+    target, acc = t * sum(lens), 0.0
+    for (p, q), ln in zip(segs, lens):
+        if ln > 0 and acc + ln >= target:
+            u = (target - acc) / ln
+            return (p[0] + u * (q[0] - p[0]), p[1] + u * (q[1] - p[1])), abs(q[1] - p[1]) < 1e-6
+        acc += ln
+    return pts[-1], False
+
+
+def trafo_box(pts, t):
+    (x, y), horizontal = point_at(pts, t)
+    w, h = (TRAFO_W, TRAFO_H) if horizontal else (TRAFO_H, TRAFO_W)
+    return (x - w / 2, y - h / 2, x + w / 2, y + h / 2), horizontal
+
+
+def _boxes_hit(a, b, pad=2):
+    return (min(a[2], b[2]) - max(a[0], b[0]) > -pad
+            and min(a[3], b[3]) - max(a[1], b[1]) > -pad)
+
+
+def _seg_hits(seg, box, pad=2):
+    (x0, y0), (x1, y1) = seg
+    return (min(max(x0, x1), box[2] + pad) - max(min(x0, x1), box[0] - pad) >= 0
+            and min(max(y0, y1), box[3] + pad) - max(min(y0, y1), box[1] - pad) >= 0)
+
+
+def branch_polylines(routes):
+    """Absolute polyline of every routed branch."""
+    polys = {}
+    for bid, ((ax, ay), (bx, by), yc) in routes.items():
+        polys[bid] = ([(ax, ay), (bx, by)] if abs(ax - bx) < 1
+                      else [(ax, ay), (ax, yc), (bx, yc), (bx, by)])
+    return polys
+
+
+def place_free(buses, gens, branches, bars, slot_x, routes):
+    """Choose transformer positions along their branch, load-value and bus-number positions,
+    each on the spot with fewest overlaps (symbols, texts) and line crossings."""
+    polys = branch_polylines(routes)
+    segs = [(bid, p, q) for bid, pts in polys.items() for p, q in zip(pts, pts[1:])]
+
+    fixed = []                                           # bars, generators, load triangles
+    tri = {}
+    for b, (left, top, length) in bars.items():
+        fixed.append((left, top, left + length, top + BAR_H))
+    for g in gens.itertuples(index=False):
+        left, top, _ = bars[g.bus]
+        cx = left + slot_x[("gen", g.gen_id)][0]
+        fixed.append((cx - GEN_D / 2, top - GEN_GAP - GEN_D, cx + GEN_D / 2, top - GEN_GAP))
+    for bus in buses.itertuples(index=False):
+        if bus.pd_mw > 0:
+            left, top, _ = bars[bus.bus]
+            cx = left + slot_x[("load", bus.bus)][0]
+            tri[bus.bus] = (cx - LOAD_W / 2, top + BAR_H + GEN_GAP, cx + LOAD_W / 2,
+                            top + BAR_H + GEN_GAP + LOAD_H)
+            fixed.append(tri[bus.bus])
+
+    def cost(box, placed, skip_branch=None, ignore=None):
+        c = 100 * sum(_boxes_hit(box, o) for o in fixed if o is not ignore)
+        # texts / transformer symbols already placed: keep a visible gap (no "4 11" -> "411")
+        c += 100 * sum(_boxes_hit((box[0] - 0.4 * FONT_BUS, box[1], box[2] + 0.4 * FONT_BUS,
+                                   box[3]), o) for o in placed)
+        c += 10 * sum(_seg_hits((p, q), box) for bid, p, q in segs if bid != skip_branch)
+        return c
+
+    placed, tr_pos, load_pos, num_pos = [], {}, {}, {}
+    for r in branches.itertuples(index=False):
+        if not r.is_trafo:
+            continue
+        best = min((cost(trafo_box(polys[r.branch_id], t)[0], placed, r.branch_id) + 0.5 * i, t)
+                   for i, t in enumerate(TR_T))
+        box, horizontal = trafo_box(polys[r.branch_id], best[1])
+        tr_pos[r.branch_id] = (best[1], 0 if horizontal else 90)
+        placed.append(box)
+    for bus in buses.itertuples(index=False):
+        if bus.pd_mw > 0:
+            txt = f"{bus.pd_mw:g}"
+            best = min((cost(load_value_box(pos, tri[bus.bus], txt), placed,
+                             ignore=tri[bus.bus]) + 0.5 * i, pos)
+                       for i, pos in enumerate(LOAD_POS))
+            load_pos[bus.bus] = best[1]
+            placed.append(load_value_box(best[1], tri[bus.bus], txt))
+    for bus in buses.itertuples(index=False):
+        left, top, length = bars[bus.bus]
+        best = min((cost(number_box(pos, left, top, length, str(bus.bus)), placed) + 0.5 * i,
+                    pos) for i, pos in enumerate(NUM_POS))
+        num_pos[bus.bus] = best[1]
+        placed.append(number_box(best[1], left, top, length, str(bus.bus)))
+    return tr_pos, load_pos, num_pos
 
 
 # -------------------------------------------------------------------------- drawing
@@ -399,11 +724,11 @@ class Diagram:
                 ET.SubElement(arr, "mxPoint", x=f"{x:.1f}", y=f"{y:.1f}")
         return cell
 
-    def edge_child(self, cid, st, edge_id, w, h, tooltip=None):
-        """Vertex attached to the midpoint of an edge (moves with the edge)."""
+    def edge_child(self, cid, st, edge_id, w, h, tooltip=None, pos=0.0):
+        """Vertex attached to an edge (moves with it); pos in [-1, 1] along it, 0 = middle."""
         cell = self._cell(cid, "", tooltip, style=st, vertex="1", parent=edge_id,
                           connectable="0")
-        geo = ET.SubElement(cell, "mxGeometry", x="0", y="0", width=f"{w}", height=f"{h}",
+        geo = ET.SubElement(cell, "mxGeometry", x="0" if pos == 0 else f"{pos:.4f}", y="0", width=f"{w}", height=f"{h}",
                             relative="1", **{"as": "geometry"})
         ET.SubElement(geo, "mxPoint", x=f"{-w / 2}", y=f"{-h / 2}", **{"as": "offset"})
 
@@ -421,9 +746,12 @@ def port(slot, bar_len):
     return rel_x / bar_len, (0 if side == "top" else 1), side
 
 
-def build(buses, gens, branches, slack_bus, pos):
+def build(buses, gens, branches, slack_bus, pos, out=OUT):
     bars, slot_x, obstacles = plan_bars(buses, gens, branches, pos)
-    routes, router = route_branches(branches, bars, slot_x, obstacles)
+    routes, router = route_branches(branches, bars, slot_x, obstacles,
+                                    symbol_zones(buses, gens, bars, slot_x) if TIDY else ())
+    tr_pos, load_pos, num_pos = (place_free(buses, gens, branches, bars, slot_x, routes)
+                                 if TIDY else ({}, {}, {}))
     d = Diagram()
     bar_id = {b: f"bus_{b}" for b in buses["bus"]}
     trafo_img = trafo_image()
@@ -456,10 +784,13 @@ def build(buses, gens, branches, slack_bus, pos):
             l1, l2, l3 = abs(yc - ay), abs(bx - ax), abs(by - yc)
             half = (l1 + l2 + l3) / 2
             rot = 0 if (not straight and l1 <= half <= l1 + l2) else 90
+            t = 0.5
+            if r.branch_id in tr_pos:                # tidy: free spot along the branch
+                t, rot = tr_pos[r.branch_id]
             d.edge_child(f"tr_{r.branch_id}",
                          style(shape="image", image=trafo_img, imageAspect="0",
                                rotation=rot, html="1"),
-                         eid, TRAFO_W, TRAFO_H, tooltip=tip)
+                         eid, TRAFO_W, TRAFO_H, tooltip=tip, pos=2 * t - 1)
 
     # 2) busbars with generator / load children
     gens_at = defaultdict(list)
@@ -473,11 +804,14 @@ def build(buses, gens, branches, slack_bus, pos):
         tip = (f"Bus {bus.bus}" + (" (reference / slack)" if is_slack else "")
                + f"\nBASE_KV = {bus.baseKV:g} kV\nPD = {bus.pd_mw:g} MW")
         bid = bar_id[bus.bus]
+        if bus.bus in num_pos:
+            lab = dict(number_style(num_pos[bus.bus]), lblPos=num_pos[bus.bus])
+        else:
+            lab = dict(labelPosition="left", verticalLabelPosition="middle", align="right",
+                       verticalAlign="middle", spacingRight="4")
         d.vertex(bid, str(bus.bus),
-                 style(rounded="0", html="1", fillColor=color, strokeColor=color,
-                       labelPosition="left", verticalLabelPosition="middle", align="right",
-                       verticalAlign="middle", spacingRight="4", fontStyle="1", fontSize=FONT_BUS,
-                       fontColor=color),
+                 style(rounded="0", html="1", fillColor=color, strokeColor=color, **lab,
+                       fontStyle="1", fontSize=FONT_BUS, fontColor=color),
                  left, top, length, BAR_H, tooltip=tip)
 
         for g in gens_at.get(bus.bus, []):
@@ -500,11 +834,13 @@ def build(buses, gens, branches, slack_bus, pos):
         if bus.pd_mw > 0:
             cx = slot_x[("load", bus.bus)][0]
             lid = f"load_{bus.bus}"
+            if bus.bus in load_pos:
+                lab = dict(load_value_style(load_pos[bus.bus]), lblPos=load_pos[bus.bus])
+            else:
+                lab = load_value_style("below")
             d.vertex(lid, f"{bus.pd_mw:g}",
                      style(triangle="", direction="south", html="1",
-                           fillColor=LOAD_COLOR, strokeColor=LOAD_COLOR,
-                           labelPosition="center", verticalLabelPosition="bottom",
-                           align="center", verticalAlign="top", spacingTop="-2",
+                           fillColor=LOAD_COLOR, strokeColor=LOAD_COLOR, **lab,
                            fontSize=FONT_LOAD, fontColor=LOAD_COLOR),
                      cx - LOAD_W / 2, BAR_H + GEN_GAP, LOAD_W, LOAD_H, parent=bid,
                      tooltip=f"Load @ bus {bus.bus}\nPD = {bus.pd_mw:g} MW")
@@ -520,16 +856,18 @@ def build(buses, gens, branches, slack_bus, pos):
     lx, ly = MARGIN, left_bottom + 110
     # rows: bus kV levels + generator + slack generator + load + line + transformer + parallel
     n_rows = len(KV_COLORS) + 6
-    row, lw = 34, 330
-    lh = 40 + n_rows * row + 8          # title band + rows + bottom padding
+    L = legend_factor()                 # legend text grows less than the network symbols
+    row, lw = max(round(34 * L), GEN_D + 8), round(330 * L)
+    lh = round(40 * L) + n_rows * row + 8          # title band + rows + bottom padding
     d.vertex("legend", "<b>IEEE 118-bus</b>",
              style(rounded="1", html="1", fillColor="#FFFFFF", strokeColor="#BDC3C7",
                    verticalAlign="top", align="left", spacingLeft="12", spacingTop="6",
-                   fontSize="20", arcSize="4"),
+                   fontSize=round(20 * L), arcSize="4"),
              lx, ly, lw, lh)
-    text = style(text="", html="1", align="left", verticalAlign="middle", fontSize="18")
-    tx, sx, sw = 100, 14, MIN_BAR          # text x, symbol x, symbol column width
-    yy = 40
+    text = style(text="", html="1", align="left", verticalAlign="middle",
+                 fontSize=round(18 * L))
+    tx, sx, sw = round(100 * L), 14, round(MIN_BAR * L)   # text x, symbol x, symbol width
+    yy = round(40 * L)
 
     def label(cid, txt):
         d.vertex(cid, txt, text, tx, yy, lw - tx - 8, row - 6, parent="legend")
@@ -568,20 +906,44 @@ def build(buses, gens, branches, slack_bus, pos):
     label("lg_part", "Parallel circuits")
 
     max_y = max(t for _, t, _ in bars.values())
-    d.write(OUT, width + MARGIN, max(max_y + 2 * MARGIN, ly + lh + MARGIN))
+    if SIZE != 1:                                # read by cs3-renewables/scenario_diagram.py
+        d.mxfile.set("sizeFactor", f"{SIZE:g}")
+    d.write(out, width + MARGIN, max(max_y + 2 * MARGIN, ly + lh + MARGIN))
     return bars
 
 
 def main():
+    ap = argparse.ArgumentParser(
+        description="Draw the IEEE 118-bus single-line diagram in draw.io format.",
+        epilog="Examples:\n  python preprocessing/single_line_diagram.py\n"
+               "  python preprocessing/single_line_diagram.py --layout regions",
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--layout", choices=["classic", "regions"], default="classic",
+                    help="classic: IEEE 118 drawing (-> figures/ieee118_unifilar.drawio); "
+                         "regions: blocks of regions A, B, C moved apart so each fits in a "
+                         "rectangle (-> figures/ieee118_unifilar_regions.drawio)")
+    ap.add_argument("--size", choices=list(SIZES), default=None,
+                    help="normal: fonts/symbols as in the classic figure; large: x2 and stretched "
+                         "vertically, readable on an A4 sheet (default: normal for classic, "
+                         "large for regions)")
+    ap.add_argument("--out", type=Path, default=None, help="output file (default by layout)")
+    args = ap.parse_args()
+    out = args.out or (OUT if args.layout == "classic" else OUT_REGIONS)
+    size = args.size or ("normal" if args.layout == "classic" else "large")
+    global SEPARATE_REGIONS
+    SEPARATE_REGIONS = args.layout == "regions"
+    apply_size(size)
+    print(f"Layout '{args.layout}', size '{size}' (fonts/symbols x{SIZE:g}, SCALE_Y {SCALE_Y:g})")
+
     buses, gens, branches, slack_bus = load_data()
-    pos = load_positions(buses)
-    bars = build(buses, gens, branches, slack_bus, pos)
+    pos = load_positions(buses, args.layout)
+    bars = build(buses, gens, branches, slack_bus, pos, out)
     width = max(l + w for l, _, w in bars.values())
     height = max(t for _, t, _ in bars.values())
     print(f"Buses {len(buses)} | generators {len(gens)} | loads {(buses['pd_mw'] > 0).sum()} | "
           f"branches {len(branches)} ({int(branches['is_trafo'].sum())} transformers)")
     print(f"Drawing extent ~{width:.0f} x {height:.0f} px")
-    print(f"Wrote {OUT}")
+    print(f"Wrote {out}")
 
 
 if __name__ == "__main__":

@@ -73,6 +73,7 @@ Environment: the virtual environment at `../venv` (Python 3.13, Gurobi 13.0.2). 
 | Rebuild the processed data (MATPOWER) | `jupyter nbconvert --to notebook --execute --inplace pre-processing.ipynb` (`preprocessing/`) | `processed/matpower/` |
 | Rebuild the processed data (SCUC) | same, with `pre-processing-scuc.ipynb` (`preprocessing/`) | `processed/scuc/` |
 | Redraw the single-line diagram | `python preprocessing/single_line_diagram.py` (anywhere) | `figures/ieee118_unifilar.drawio` |
+| CS3 diagrams (regions, interconnections, renewables per scenario; A4 pages) | `python preprocessing/single_line_diagram.py --layout regions`, then `python cs3-renewables/scenario_diagram.py` | `figures/ieee118_unifilar_regions.drawio`, `figures/ieee118_cs3_scenarios.drawio` |
 | Reference case on a grid of load levels | `python reference/run_reference.py` | `reference/results/` |
 | One case (SC-DCOPF, OTS MILP, K_min, max λ) | `python model/run_ots.py ...` (see `model/README.md`) | `<out-root>/` |
 | Sequential heuristic | `python heuristics/sequential.py ...` (see `heuristics/README.md`) | `<out-root>/.../heuristic/` |
